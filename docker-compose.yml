@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:17
+    container_name: azul-db
+    environment:
+      POSTGRES_USER: azul
+      POSTGRES_PASSWORD: azul_dev
+      POSTGRES_DB: azul
+    ports:
+      - "5433:5432"
+    volumes:
+      - azul-pgdata:/var/lib/postgresql/data
+
+volumes:
+  azul-pgdata:
