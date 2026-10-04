@@ -1,6 +1,60 @@
 @Azul.Api_HostAddress = http://localhost:5297
+@categoryId = 1
 
-GET {{Azul.Api_HostAddress}}/weatherforecast/
+### Listar todas las categorías (ordenadas por nombre)
+GET {{Azul.Api_HostAddress}}/api/categories
 Accept: application/json
 
-###
+### Traer una categoría por id
+GET {{Azul.Api_HostAddress}}/api/categories/{{categoryId}}
+Accept: application/json
+
+### Id que no existe -> 404
+GET {{Azul.Api_HostAddress}}/api/categories/99999
+Accept: application/json
+
+### Crear una categoría -> 201 con header Location
+POST {{Azul.Api_HostAddress}}/api/categories
+Content-Type: application/json
+
+{
+  "name": "Plomería"
+}
+
+### Mismo nombre en otro caso y con espacios -> 409
+POST {{Azul.Api_HostAddress}}/api/categories
+Content-Type: application/json
+
+{
+  "name": "  plomería "
+}
+
+### Nombre vacío -> 400 (validación del DTO)
+POST {{Azul.Api_HostAddress}}/api/categories
+Content-Type: application/json
+
+{
+  "name": ""
+}
+
+### Editar una categoría -> 204
+PUT {{Azul.Api_HostAddress}}/api/categories/{{categoryId}}
+Content-Type: application/json
+
+{
+  "name": "Gastronomía"
+}
+
+### Editar con el nombre de otra categoría -> 409
+PUT {{Azul.Api_HostAddress}}/api/categories/{{categoryId}}
+Content-Type: application/json
+
+{
+  "name": "Plomería"
+}
+
+### Borrar una categoría -> 204 (cambiá el id por una que puedas borrar)
+DELETE {{Azul.Api_HostAddress}}/api/categories/{{categoryId}}
+
+### Borrar un id que no existe -> 404
+DELETE {{Azul.Api_HostAddress}}/api/categories/99999

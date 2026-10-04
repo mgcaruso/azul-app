@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Azul.Api.Entities;
+namespace Azul.Api.DTOs;
 
-public class Category
+public class CategorySaveDto
 {
-    public int Id { get; set; }
+    [Required]
     [MaxLength(100)]
     public required string Name { get; set; }
-
 }
