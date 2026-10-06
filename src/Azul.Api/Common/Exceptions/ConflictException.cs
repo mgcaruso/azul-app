@@ -10,4 +10,8 @@ public class ConflictException : AppException
     {
         Field = field;
     }
+
+    // Duplicado genérico: el front mapea por code + field, no muestra el texto del backend.
+    public static ConflictException Duplicate(string field)
+        => new("duplicate_value", "Ya existe un registro con ese valor.", field);
 }

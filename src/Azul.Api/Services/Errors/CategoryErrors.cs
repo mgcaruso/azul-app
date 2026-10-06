@@ -8,7 +8,4 @@ public static class CategoryErrors
 {
     public static NotFoundException NotFound(int id)
         => new("category.not_found", $"No existe la categoría {id}.");
-
-    public static ConflictException DuplicateName()
-        => new("category.duplicate_name", "Ya existe una categoría con ese nombre.", field: "name");
 }

@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Azul.Api.Common.Exceptions;
 using Azul.Api.Data;
 using Azul.Api.DTOs;
 using Azul.Api.Entities;
@@ -36,7 +37,7 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
         var name = categorySaveDto.Name.Trim();
         if (await NameExists(name))
         {
-            throw CategoryErrors.DuplicateName();
+            throw ConflictException.Duplicate("name");
         }
 
         var category = new Category { Name = name };
@@ -54,7 +55,7 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
         var name = categorySaveDto.Name.Trim();
         if (await NameExists(name, excludeId: id))
         {
-            throw CategoryErrors.DuplicateName();
+            throw ConflictException.Duplicate("name");
         }
 
         category.Name = name;

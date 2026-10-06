@@ -1,5 +1,7 @@
 @Azul.Api_HostAddress = http://localhost:5297
 @categoryId = 1
+@otherCategoryId = 2
+@offeringId = 1
 
 ### Listar todas las categorías (ordenadas por nombre)
 GET {{Azul.Api_HostAddress}}/api/categories
@@ -58,3 +60,141 @@ DELETE {{Azul.Api_HostAddress}}/api/categories/{{categoryId}}
 
 ### Borrar un id que no existe -> 404
 DELETE {{Azul.Api_HostAddress}}/api/categories/99999
+
+### ===== Servicios (Offering) =====
+
+### Listar todos los servicios (búsqueda sin filtros, página 1 de 12)
+GET {{Azul.Api_HostAddress}}/api/services
+Accept: application/json
+
+### Traer un servicio por id
+GET {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
+Accept: application/json
+
+### Servicio que no existe -> 404 (offering.not_found)
+GET {{Azul.Api_HostAddress}}/api/services/99999
+Accept: application/json
+
+### Crear un servicio -> 201 con header Location
+POST {{Azul.Api_HostAddress}}/api/services
+Content-Type: application/json
+
+{
+  "name": "Destapaciones",
+  "description": "Cañerías y desagües",
+  "categoryId": {{categoryId}}
+}
+
+### Mismo nombre en la misma categoría (otro caso y con espacios) -> 409 (offering.duplicate_name)
+POST {{Azul.Api_HostAddress}}/api/services
+Content-Type: application/json
+
+{
+  "name": "  destapaciones ",
+  "categoryId": {{categoryId}}
+}
+
+### Mismo nombre en OTRA categoría -> 201 (es único por categoría)
+POST {{Azul.Api_HostAddress}}/api/services
+Content-Type: application/json
+
+{
+  "name": "Destapaciones",
+  "categoryId": {{otherCategoryId}}
+}
+
+### Categoría que no existe -> 400 con errors.categoryId
+POST {{Azul.Api_HostAddress}}/api/services
+Content-Type: application/json
+
+{
+  "name": "Pintura",
+  "categoryId": 99999
+}
+
+### Sin categoryId -> 400 (validación del DTO)
+POST {{Azul.Api_HostAddress}}/api/services
+Content-Type: application/json
+
+{
+  "name": "Pintura"
+}
+
+### Editar un servicio -> 204
+PUT {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
+Content-Type: application/json
+
+{
+  "name": "Destapaciones y cloacas",
+  "description": "Cañerías, desagües y cloacas",
+  "categoryId": {{categoryId}}
+}
+
+### Editar con el nombre de otro servicio de la misma categoría -> 409 (cambiá el nombre por uno que exista)
+PUT {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
+Content-Type: application/json
+
+{
+  "name": "Electricidad",
+  "categoryId": {{categoryId}}
+}
+
+### Mover a una categoría que no existe -> 400 con errors.categoryId
+PUT {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
+Content-Type: application/json
+
+{
+  "name": "Destapaciones",
+  "categoryId": 99999
+}
+
+### Editar un servicio que no existe -> 404
+PUT {{Azul.Api_HostAddress}}/api/services/99999
+Content-Type: application/json
+
+{
+  "name": "Destapaciones",
+  "categoryId": {{categoryId}}
+}
+
+### Borrar un servicio -> 204 (cambiá el id por uno que puedas borrar)
+DELETE {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
+
+### Borrar un servicio que no existe -> 404 (offering.not_found)
+DELETE {{Azul.Api_HostAddress}}/api/services/99999
+
+### Servicios de una categoría que tiene servicios -> 200 con la lista ordenada por nombre
+GET {{Azul.Api_HostAddress}}/api/categories/{{categoryId}}/services
+Accept: application/json
+
+### Servicios de una categoría sin servicios -> 200 con [] (cambiá el id por una categoría vacía)
+GET {{Azul.Api_HostAddress}}/api/categories/{{otherCategoryId}}/services
+Accept: application/json
+
+### Servicios de una categoría que no existe -> 404 (category.not_found)
+GET {{Azul.Api_HostAddress}}/api/categories/99999/services
+Accept: application/json
+
+### Buscar por texto -> servicios cuyo nombre contiene "plom"
+GET {{Azul.Api_HostAddress}}/api/services?text=plom
+Accept: application/json
+
+### Filtrar por categoría
+GET {{Azul.Api_HostAddress}}/api/services?categoryId={{categoryId}}
+Accept: application/json
+
+### Texto + categoría
+GET {{Azul.Api_HostAddress}}/api/services?text=plom&categoryId={{categoryId}}
+Accept: application/json
+
+### Segunda página (de a 2 para ver hasMore con pocos datos)
+GET {{Azul.Api_HostAddress}}/api/services?page=2&pageSize=2
+Accept: application/json
+
+### Categoría que no existe -> 404 (category.not_found), si decidís que sea 404
+GET {{Azul.Api_HostAddress}}/api/services?categoryId=99999
+Accept: application/json
+
+### pageSize fuera de rango -> 400 (validación)
+GET {{Azul.Api_HostAddress}}/api/services?pageSize=1000
+Accept: application/json
