@@ -3,7 +3,6 @@ using Azul.Api.Common.Exceptions;
 using Azul.Api.Data;
 using Azul.Api.DTOs;
 using Azul.Api.Entities;
-using Azul.Api.Services.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace Azul.Api.Services;
@@ -20,7 +19,7 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
     public async Task<OfferingSearchResultDto> SearchAsync(OfferingSearchQuery query)
     {
         // TODO (Guada):
-        // 1. Si viene CategoryId y la categoría no existe -> ¿404 con CategoryErrors.NotFound o lista vacía? (a decidir).
+        // 1. Si viene CategoryId y la categoría no existe -> ¿404 con new NotFoundException("category", categoryId) o lista vacía? (a decidir).
         // 2. Arrancar de dbContext.Offerings (IQueryable) y sumar los filtros solo si vienen:
         //    - CategoryId: Where por CategoryId.
         //    - Text (con Trim): EF.Functions.ILike(o.Name, $"%{texto}%"), escapando antes % y _ del texto
@@ -38,7 +37,7 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
                    .Where(o => o.Id == id)
                    .Select(ToDto)
                    .FirstOrDefaultAsync()
-               ?? throw OfferingErrors.NotFound(id);
+               ?? throw new NotFoundException("offering", id);
     }
 
     // Servicios de una categoría: GET /api/categories/{categoryId}/services
@@ -47,7 +46,7 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
         var categoryExists = await dbContext.Categories.AnyAsync(c => c.Id == categoryId);
         if (!categoryExists)
         {
-            throw CategoryErrors.NotFound(categoryId);
+            throw new NotFoundException("category", categoryId);
         }
 
         return await dbContext.Offerings
@@ -63,7 +62,7 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
         var categoryId = offeringSaveDto.CategoryId!.Value;
         if (!await dbContext.Categories.AnyAsync(c => c.Id == categoryId))
         {
-            throw OfferingErrors.CategoryNotFound(categoryId);
+            throw ValidationFailedException.ForField("categoryId", "La categoría no existe.");
         }
 
         var name = offeringSaveDto.Name.Trim();
@@ -93,7 +92,7 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
     public async Task UpdateAsync(int id, OfferingSaveDto offeringSaveDto)
     {
         var offering = await dbContext.Offerings.FindAsync(id)
-                       ?? throw OfferingErrors.NotFound(id);
+                       ?? throw new NotFoundException("offering", id);
 
         // [Required] ya validó que vino, por eso el ! es seguro.
         var categoryId = offeringSaveDto.CategoryId!.Value;
@@ -101,7 +100,7 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
         if (categoryId != offering.CategoryId
             && !await dbContext.Categories.AnyAsync(c => c.Id == categoryId))
         {
-            throw OfferingErrors.CategoryNotFound(categoryId);
+            throw ValidationFailedException.ForField("categoryId", "La categoría no existe.");
         }
 
         var name = offeringSaveDto.Name.Trim();
@@ -130,7 +129,7 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
 
         if (deletedRows == 0)
         {
-            throw OfferingErrors.NotFound(id);
+            throw new NotFoundException("offering", id);
         }
     }
 

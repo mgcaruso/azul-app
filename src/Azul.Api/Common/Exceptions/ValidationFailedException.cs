@@ -11,4 +11,8 @@ public class ValidationFailedException : AppException
     {
         Errors = errors;
     }
+
+    // Atajo para el caso más común: un solo campo inválido (ej. un categoryId que no existe).
+    public static ValidationFailedException ForField(string field, string message)
+        => new(new Dictionary<string, string[]> { [field] = [message] });
 }

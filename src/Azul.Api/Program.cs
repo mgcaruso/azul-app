@@ -24,8 +24,7 @@ builder.Services.AddProblemDetails(options =>
     // se lo agregamos para que el front reciba siempre la misma forma.
     options.CustomizeProblemDetails = context =>
     {
-        if (context.ProblemDetails is ValidationProblemDetails
-            && !context.ProblemDetails.Extensions.ContainsKey("code"))
+        if (context.ProblemDetails is ValidationProblemDetails)
         {
             context.ProblemDetails.Extensions["code"] = "validation.failed";
         }

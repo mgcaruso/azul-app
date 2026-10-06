@@ -3,7 +3,6 @@ using Azul.Api.Common.Exceptions;
 using Azul.Api.Data;
 using Azul.Api.DTOs;
 using Azul.Api.Entities;
-using Azul.Api.Services.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace Azul.Api.Services;
@@ -29,7 +28,7 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
                    .Where(c => c.Id == id)
                    .Select(ToDto)
                    .FirstOrDefaultAsync()
-               ?? throw CategoryErrors.NotFound(id);
+               ?? throw new NotFoundException("category", id);
     }
 
     public async Task<CategoryDto> CreateAsync(CategorySaveDto categorySaveDto)
@@ -50,7 +49,7 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
     public async Task UpdateAsync(int id, CategorySaveDto categorySaveDto)
     {
         var category = await dbContext.Categories.FindAsync(id)
-                       ?? throw CategoryErrors.NotFound(id);
+                       ?? throw new NotFoundException("category", id);
 
         var name = categorySaveDto.Name.Trim();
         if (await NameExists(name, excludeId: id))
@@ -70,7 +69,7 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
 
         if (deletedRows == 0)
         {
-            throw CategoryErrors.NotFound(id);
+            throw new NotFoundException("category", id);
         }
     }
 

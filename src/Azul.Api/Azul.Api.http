@@ -71,7 +71,7 @@ Accept: application/json
 GET {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
 Accept: application/json
 
-### Servicio que no existe -> 404 (offering.not_found)
+### Servicio que no existe -> 404 (not_found, resource offering)
 GET {{Azul.Api_HostAddress}}/api/services/99999
 Accept: application/json
 
@@ -85,7 +85,7 @@ Content-Type: application/json
   "categoryId": {{categoryId}}
 }
 
-### Mismo nombre en la misma categoría (otro caso y con espacios) -> 409 (offering.duplicate_name)
+### Mismo nombre en la misma categoría (otro caso y con espacios) -> 409 (duplicate_value, field name)
 POST {{Azul.Api_HostAddress}}/api/services
 Content-Type: application/json
 
@@ -160,7 +160,7 @@ Content-Type: application/json
 ### Borrar un servicio -> 204 (cambiá el id por uno que puedas borrar)
 DELETE {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
 
-### Borrar un servicio que no existe -> 404 (offering.not_found)
+### Borrar un servicio que no existe -> 404 (not_found, resource offering)
 DELETE {{Azul.Api_HostAddress}}/api/services/99999
 
 ### Servicios de una categoría que tiene servicios -> 200 con la lista ordenada por nombre
@@ -171,7 +171,7 @@ Accept: application/json
 GET {{Azul.Api_HostAddress}}/api/categories/{{otherCategoryId}}/services
 Accept: application/json
 
-### Servicios de una categoría que no existe -> 404 (category.not_found)
+### Servicios de una categoría que no existe -> 404 (not_found, resource category)
 GET {{Azul.Api_HostAddress}}/api/categories/99999/services
 Accept: application/json
 
@@ -191,7 +191,7 @@ Accept: application/json
 GET {{Azul.Api_HostAddress}}/api/services?page=2&pageSize=2
 Accept: application/json
 
-### Categoría que no existe -> 404 (category.not_found), si decidís que sea 404
+### Categoría que no existe -> 404 (not_found, resource category), si decidís que sea 404
 GET {{Azul.Api_HostAddress}}/api/services?categoryId=99999
 Accept: application/json
 
