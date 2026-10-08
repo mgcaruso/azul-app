@@ -9,9 +9,6 @@ public class Offering
     [MaxLength(100)]
     public required string Name { get; set; }
 
-    [MaxLength(300)]
-    public string? Description { get; set; }
-
     public required int CategoryId { get; set; }
     public Category Category { get; set; } = null!;
 }

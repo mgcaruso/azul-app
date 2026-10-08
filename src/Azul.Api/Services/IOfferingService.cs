@@ -1,10 +1,11 @@
-﻿using Azul.Api.DTOs;
+﻿using Azul.Api.Common.Pagination;
+using Azul.Api.DTOs;
 
 namespace Azul.Api.Services;
 
 public interface IOfferingService
 {
-    Task<OfferingSearchResultDto> SearchAsync(OfferingSearchQuery query);
+    Task<PagedResult<OfferingSummaryDto>> SearchAsync(OfferingSearchQuery query);
     Task<OfferingDto> GetByIdAsync(int id);
     Task<List<OfferingSummaryDto>> GetByCategoryAsync(int categoryId);
     Task<OfferingDto> CreateAsync(OfferingSaveDto offeringSaveDto);

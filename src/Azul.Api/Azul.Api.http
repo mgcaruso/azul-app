@@ -81,7 +81,6 @@ Content-Type: application/json
 
 {
   "name": "Destapaciones",
-  "description": "Cañerías y desagües",
   "categoryId": {{categoryId}}
 }
 
@@ -126,7 +125,6 @@ Content-Type: application/json
 
 {
   "name": "Destapaciones y cloacas",
-  "description": "Cañerías, desagües y cloacas",
   "categoryId": {{categoryId}}
 }
 

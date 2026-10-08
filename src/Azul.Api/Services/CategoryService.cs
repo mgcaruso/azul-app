@@ -73,11 +73,16 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
         }
     }
 
-    // ¿Hay otra categoría con este nombre (sin distinguir mayúsculas)?
+    // ¿Hay otra categoría con este nombre (sin distinguir mayúsculas ni tildes)?
     // excludeId sirve en el Update, para no chocar con la categoría que se está editando.
     private Task<bool> NameExists(string name, int? excludeId = null)
     {
+        // FUnaccent solo existe para que EF la traduzca a SQL: tiene que ir DENTRO de la expresión
+        // del AnyAsync. Si se llama afuera, se ejecuta en C# y tira NotSupportedException.
+        var lowerName = name.ToLowerInvariant();
+
         return dbContext.Categories
-            .AnyAsync(c => c.Id != excludeId && c.Name.ToLower() == name.ToLower());
+            .AnyAsync(c => c.Id != excludeId
+                           && AppDbContext.FUnaccent(c.Name.ToLower()) == AppDbContext.FUnaccent(lowerName));
     }
 }

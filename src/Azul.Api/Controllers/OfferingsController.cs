@@ -1,4 +1,5 @@
-﻿using Azul.Api.DTOs;
+﻿using Azul.Api.Common.Pagination;
+using Azul.Api.DTOs;
 using Azul.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,10 +13,10 @@ public class OfferingsController(IOfferingService offeringService) : ControllerB
 {
     // Reemplaza al GetAll: sin parámetros devuelve todos los servicios, paginados.
     [HttpGet]
-    [ProducesResponseType<OfferingSearchResultDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PagedResult<OfferingSummaryDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<OfferingSearchResultDto>> Search([FromQuery] OfferingSearchQuery query)
+    public async Task<ActionResult<PagedResult<OfferingSummaryDto>>> Search([FromQuery] OfferingSearchQuery query)
     {
         return Ok(await offeringService.SearchAsync(query));
     }
