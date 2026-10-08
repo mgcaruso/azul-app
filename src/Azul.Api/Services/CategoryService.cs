@@ -2,8 +2,8 @@
 using Azul.Api.Data;
 using Azul.Api.DTOs;
 using Azul.Api.Entities;
+using Azul.Api.Services.Errors;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace Azul.Api.Services;
 
@@ -22,84 +22,62 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
             .ToListAsync();
     }
 
-    public async Task<CategoryDto?> GetByIdAsync(int id)
+    public async Task<CategoryDto> GetByIdAsync(int id)
     {
-        var result = await dbContext.Categories
-            .Where(c => c.Id == id)
-            .Select(ToDto)
-            .FirstOrDefaultAsync();
-        return result;
+        return await dbContext.Categories
+                   .Where(c => c.Id == id)
+                   .Select(ToDto)
+                   .FirstOrDefaultAsync()
+               ?? throw CategoryErrors.NotFound(id);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<CategoryDto> CreateAsync(CategorySaveDto categorySaveDto)
+    {
+        var name = categorySaveDto.Name.Trim();
+        if (await NameExists(name))
+        {
+            throw CategoryErrors.DuplicateName();
+        }
+
+        var category = new Category { Name = name };
+        dbContext.Add(category);
+        await dbContext.SaveChangesAsync();
+
+        return new CategoryDto { Id = category.Id, Name = category.Name };
+    }
+
+    public async Task UpdateAsync(int id, CategorySaveDto categorySaveDto)
+    {
+        var category = await dbContext.Categories.FindAsync(id)
+                       ?? throw CategoryErrors.NotFound(id);
+
+        var name = categorySaveDto.Name.Trim();
+        if (await NameExists(name, excludeId: id))
+        {
+            throw CategoryErrors.DuplicateName();
+        }
+
+        category.Name = name;
+        await dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(int id)
     {
         var deletedRows = await dbContext.Categories
             .Where(c => c.Id == id)
             .ExecuteDeleteAsync();
 
-        return deletedRows > 0;
+        if (deletedRows == 0)
+        {
+            throw CategoryErrors.NotFound(id);
+        }
     }
 
-    public async Task<CategoryDto?> CreateAsync(CategorySaveDto categorySaveDto)
-    {
-        var name = categorySaveDto.Name.Trim();
-        if (await NameExists(name))
-        {
-            return null;
-        }
-
-        var category = new Category { Name = name };
-        dbContext.Add(category);
-        if (!await TrySaveChanges())
-        {
-            return null;
-        }
-
-        return new CategoryDto { Id = category.Id, Name = category.Name };
-    }
-
-    public async Task<UpdateCategoryResult> UpdateAsync(int id, CategorySaveDto categorySaveDto)
-    {
-        var categoryDb = await dbContext.Categories.FirstOrDefaultAsync(c => c.Id == id);
-        if (categoryDb == null)
-        {
-            return UpdateCategoryResult.NotFound;
-        }
-
-        var name = categorySaveDto.Name.Trim();
-        if (await NameExists(name, excludeId: id))
-        {
-            return UpdateCategoryResult.DuplicateName;
-        }
-
-        categoryDb.Name = name;
-        if (!await TrySaveChanges())
-        {
-            return UpdateCategoryResult.DuplicateName;
-        }
-
-        return UpdateCategoryResult.Updated;
-    }
-
+    // ¿Hay otra categoría con este nombre (sin distinguir mayúsculas)?
+    // excludeId sirve en el Update, para no chocar con la categoría que se está editando.
     private Task<bool> NameExists(string name, int? excludeId = null)
     {
         return dbContext.Categories
             .AnyAsync(c => c.Id != excludeId && c.Name.ToLower() == name.ToLower());
-    }
-
-    // Guarda los cambios. Si el índice único de la base rechaza el nombre
-    // (dos pedidos a la vez que pasaron el NameExists), devuelve false en vez de tirar un 500.
-    private async Task<bool> TrySaveChanges()
-    {
-        try
-        {
-            await dbContext.SaveChangesAsync();
-            return true;
-        }
-        catch (DbUpdateException ex)
-            when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
-        {
-            return false;
-        }
     }
 }
