@@ -4,10 +4,8 @@
 
 namespace Azul.Api.Migrations
 {
-    /// <inheritdoc />
     public partial class QuitarDescripcionOffering : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
@@ -15,7 +13,6 @@ namespace Azul.Api.Migrations
                 table: "Offerings");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(

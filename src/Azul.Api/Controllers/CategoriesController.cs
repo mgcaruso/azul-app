@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Azul.Api.Controllers;
 
-// Solo el camino feliz: si algo falla, el service lanza una excepción
-// y AppExceptionHandler la traduce a 404/409/500 con ProblemDetails.
 [ApiController]
 [Route("api/categories")]
 public class CategoriesController(ICategoryService categoryService) : ControllerBase

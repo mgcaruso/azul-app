@@ -5,13 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Azul.Api.Controllers;
 
-// Solo el camino feliz: si algo falla, el service lanza una excepción
-// y AppExceptionHandler la traduce a 400/404/409/500 con ProblemDetails.
 [ApiController]
 [Route("api/providers")]
 public class ProvidersController(IProviderService providerService) : ControllerBase
 {
-    // Sin parámetros devuelve todos los proveedores, paginados.
     [HttpGet]
     [ProducesResponseType<PagedResult<ProviderSummaryDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -28,7 +25,6 @@ public class ProvidersController(IProviderService providerService) : ControllerB
         return Ok(await providerService.GetByIdAsync(id));
     }
 
-    // La "/" inicial hace que la ruta no se sume a "api/providers": queda /api/services/{id}/providers.
     [HttpGet("/api/services/{offeringId:int}/providers")]
     [ProducesResponseType<PagedResult<ProviderSummaryDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]

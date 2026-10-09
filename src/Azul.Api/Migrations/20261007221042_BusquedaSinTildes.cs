@@ -4,10 +4,8 @@
 
 namespace Azul.Api.Migrations
 {
-    /// <inheritdoc />
     public partial class BusquedaSinTildes : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterDatabase()
@@ -25,10 +23,8 @@ namespace Azul.Api.Migrations
                                  """);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Primero lo que depende de las extensiones (índice y función), después las extensiones.
             migrationBuilder.Sql("""DROP INDEX "IX_Offerings_Name_Search";""");
             migrationBuilder.Sql("DROP FUNCTION f_unaccent(text);");
 

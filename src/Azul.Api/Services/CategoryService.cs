@@ -9,8 +9,6 @@ namespace Azul.Api.Services;
 
 public class CategoryService(AppDbContext dbContext) : ICategoryService
 {
-    // Mapeo entidad -> DTO. Es una Expression (no un método) para que EF lo traduzca a SQL
-    // y solo traiga las columnas que usa el DTO.
     private static readonly Expression<Func<Category, CategoryDto>> ToDto =
         c => new CategoryDto { Id = c.Id, Name = c.Name };
 
@@ -73,12 +71,8 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
         }
     }
 
-    // ¿Hay otra categoría con este nombre (sin distinguir mayúsculas ni tildes)?
-    // excludeId sirve en el Update, para no chocar con la categoría que se está editando.
     private Task<bool> NameExists(string name, int? excludeId = null)
     {
-        // FUnaccent solo existe para que EF la traduzca a SQL: tiene que ir DENTRO de la expresión
-        // del AnyAsync. Si se llama afuera, se ejecuta en C# y tira NotSupportedException.
         var lowerName = name.ToLowerInvariant();
 
         return dbContext.Categories

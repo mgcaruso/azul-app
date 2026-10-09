@@ -1,4 +1,3 @@
-﻿using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 using Azul.Api.Common.Exceptions;
 using Azul.Api.Common.Pagination;
@@ -15,7 +14,6 @@ public class ProviderService(AppDbContext dbContext) : IProviderService
     private static readonly Expression<Func<Provider, ProviderSummaryDto>> ToProviderSummaryDto =
         p => new ProviderSummaryDto { Id = p.Id, Name = p.Name, Type = p.Type };
 
-    // La ficha completa, con sus servicios. La usan GetByIdAsync y, a través de él, CreateAsync.
     private static readonly Expression<Func<Provider, ProviderDto>> ToProviderDto =
         p => new ProviderDto
         {
@@ -82,8 +80,6 @@ public class ProviderService(AppDbContext dbContext) : IProviderService
     public async Task<PagedResult<ProviderSummaryDto>> GetByOfferingAsync(int offeringId, PageQuery pageQuery)
     {
         
-        // TODO (Guada):
-        // 1. Si el servicio no existe -> NotFoundException("offering", offeringId).
         var offeringDb =await  dbContext.Offerings.AnyAsync(o => o.Id == offeringId);
         if (!offeringDb)
         {

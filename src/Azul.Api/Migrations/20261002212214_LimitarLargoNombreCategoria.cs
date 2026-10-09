@@ -4,10 +4,8 @@
 
 namespace Azul.Api.Migrations
 {
-    /// <inheritdoc />
     public partial class LimitarLargoNombreCategoria : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
@@ -20,7 +18,6 @@ namespace Azul.Api.Migrations
                 oldType: "text");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(

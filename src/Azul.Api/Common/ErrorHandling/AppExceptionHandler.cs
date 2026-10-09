@@ -4,13 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Azul.Api.Common.ErrorHandling;
 
-// Único lugar que traduce excepciones a HTTP.
-// Lo llama UseExceptionHandler() cuando una excepción sale sin que nadie la atrape.
 public class AppExceptionHandler(
     IProblemDetailsService problemDetailsService,
     ILogger<AppExceptionHandler> logger) : IExceptionHandler
 {
-    // El CancellationToken lo exige la interfaz: solo se pasa.
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
@@ -35,7 +32,6 @@ public class AppExceptionHandler(
         }
         else
         {
-            // Inesperado: se registra completo en el log, pero al cliente no le llega nada interno.
             logger.LogError(exception, "Error inesperado en {Method} {Path}",
                 httpContext.Request.Method, httpContext.Request.Path);
             problem.Detail = "Ocurrió un error inesperado.";
@@ -60,8 +56,6 @@ public class AppExceptionHandler(
 
         httpContext.Response.StatusCode = status;
 
-        // IProblemDetailsService (registrado por AddProblemDetails) completa type, title y traceId,
-        // así el formato es el mismo que el de los 400 de validación de ASP.NET.
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = httpContext,

@@ -4,10 +4,8 @@
 
 namespace Azul.Api.Migrations
 {
-    /// <inheritdoc />
     public partial class QuitarIndiceUnicoCategorias : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql("""DROP INDEX IF EXISTS "IX_Categories_Name_Lower";""");
