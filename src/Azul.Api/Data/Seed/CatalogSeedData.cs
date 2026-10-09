@@ -2,11 +2,8 @@
 
 namespace Azul.Api.Data.Seed;
 
-// Datos fijos para el seeder de desarrollo. Son solo datos: la lógica está en DevSeeder.
-// El catálogo está escrito a mano, con los nombres como los buscaría la gente.
 public static class CatalogSeedData
 {
-    // Categoría -> sus servicios.
     public static readonly Dictionary<string, string[]> Catalog = new()
     {
         ["Comida"] =
@@ -77,7 +74,6 @@ public static class CatalogSeedData
         ]
     };
 
-    // Para inventar nombres de proveedores ("María González", "Taller Gómez", "Lo de Lu").
     public static readonly string[] FirstNames =
     [
         "María", "José", "Lucía", "Juan", "Sofía", "Martín", "Valentina", "Diego", "Camila", "Pablo",
@@ -94,8 +90,6 @@ public static class CatalogSeedData
         "Silva", "Castro", "Rojas", "Ortiz", "Núñez", "Luna", "Juárez", "Cabrera", "Ríos", "Ferreyra"
     ];
 
-    // Formatos con {0} = nombre y {1} = apellido, y el tipo de proveedor que sale de cada uno.
-    // "{0} {1}" aparece varias veces para que haya más personas que negocios.
     public static readonly (string Format, ProviderType Type)[] NameFormats =
     [
         ("{0} {1}", ProviderType.Individual), ("{0} {1}", ProviderType.Individual),

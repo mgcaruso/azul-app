@@ -2,7 +2,6 @@
 
 namespace Azul.Api.Services;
 
-// Los métodos lanzan NotFoundException o ConflictException cuando algo no se puede hacer.
 public interface ICategoryService
 {
     Task<List<CategoryDto>> GetAllAsync();

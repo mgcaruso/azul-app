@@ -5,13 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Azul.Api.Controllers;
 
-// Solo el camino feliz: si algo falla, el service lanza una excepción
-// y AppExceptionHandler la traduce a 400/404/409/500 con ProblemDetails.
 [ApiController]
 [Route("api/services")]
 public class OfferingsController(IOfferingService offeringService) : ControllerBase
 {
-    // Reemplaza al GetAll: sin parámetros devuelve todos los servicios, paginados.
     [HttpGet]
     [ProducesResponseType<PagedResult<OfferingSummaryDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -27,7 +24,6 @@ public class OfferingsController(IOfferingService offeringService) : ControllerB
         return Ok(await offeringService.GetByIdAsync(id));
     }
 
-    // La "/" inicial hace que la ruta no se sume a "api/services": queda /api/categories/{id}/services.
     [HttpGet("/api/categories/{categoryId:int}/services")]
     [ProducesResponseType<List<OfferingSummaryDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]

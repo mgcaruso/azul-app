@@ -4,10 +4,8 @@
 
 namespace Azul.Api.Migrations
 {
-    /// <inheritdoc />
     public partial class QuitarImageUrlIndiceNombre : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
@@ -15,7 +13,6 @@ namespace Azul.Api.Migrations
                 table: "Categories");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
