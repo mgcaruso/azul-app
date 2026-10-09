@@ -42,6 +42,12 @@ public class AppExceptionHandler(
             problem.Extensions["code"] = "server.unexpected";
         }
 
+        if (exception is NotFoundException notFound)
+        {
+            problem.Extensions["resource"] = notFound.Resource;
+            problem.Extensions["id"] = notFound.Id;
+        }
+
         if (exception is ConflictException { Field: not null } conflict)
         {
             problem.Extensions["field"] = conflict.Field;

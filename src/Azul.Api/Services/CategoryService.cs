@@ -1,8 +1,8 @@
 ﻿using System.Linq.Expressions;
+using Azul.Api.Common.Exceptions;
 using Azul.Api.Data;
 using Azul.Api.DTOs;
 using Azul.Api.Entities;
-using Azul.Api.Services.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace Azul.Api.Services;
@@ -28,7 +28,7 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
                    .Where(c => c.Id == id)
                    .Select(ToDto)
                    .FirstOrDefaultAsync()
-               ?? throw CategoryErrors.NotFound(id);
+               ?? throw new NotFoundException("category", id);
     }
 
     public async Task<CategoryDto> CreateAsync(CategorySaveDto categorySaveDto)
@@ -36,7 +36,7 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
         var name = categorySaveDto.Name.Trim();
         if (await NameExists(name))
         {
-            throw CategoryErrors.DuplicateName();
+            throw ConflictException.Duplicate("name");
         }
 
         var category = new Category { Name = name };
@@ -49,12 +49,12 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
     public async Task UpdateAsync(int id, CategorySaveDto categorySaveDto)
     {
         var category = await dbContext.Categories.FindAsync(id)
-                       ?? throw CategoryErrors.NotFound(id);
+                       ?? throw new NotFoundException("category", id);
 
         var name = categorySaveDto.Name.Trim();
         if (await NameExists(name, excludeId: id))
         {
-            throw CategoryErrors.DuplicateName();
+            throw ConflictException.Duplicate("name");
         }
 
         category.Name = name;
@@ -69,15 +69,20 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
 
         if (deletedRows == 0)
         {
-            throw CategoryErrors.NotFound(id);
+            throw new NotFoundException("category", id);
         }
     }
 
-    // ¿Hay otra categoría con este nombre (sin distinguir mayúsculas)?
+    // ¿Hay otra categoría con este nombre (sin distinguir mayúsculas ni tildes)?
     // excludeId sirve en el Update, para no chocar con la categoría que se está editando.
     private Task<bool> NameExists(string name, int? excludeId = null)
     {
+        // FUnaccent solo existe para que EF la traduzca a SQL: tiene que ir DENTRO de la expresión
+        // del AnyAsync. Si se llama afuera, se ejecuta en C# y tira NotSupportedException.
+        var lowerName = name.ToLowerInvariant();
+
         return dbContext.Categories
-            .AnyAsync(c => c.Id != excludeId && c.Name.ToLower() == name.ToLower());
+            .AnyAsync(c => c.Id != excludeId
+                           && AppDbContext.FUnaccent(c.Name.ToLower()) == AppDbContext.FUnaccent(lowerName));
     }
 }

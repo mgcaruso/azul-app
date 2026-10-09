@@ -1,5 +1,9 @@
-@Azul.Api_HostAddress = http://localhost:5297
+﻿@Azul.Api_HostAddress = http://localhost:5297
 @categoryId = 1
+@otherCategoryId = 2
+@offeringId = 1
+@otherOfferingId = 2
+@providerId = 1
 
 ### Listar todas las categorías (ordenadas por nombre)
 GET {{Azul.Api_HostAddress}}/api/categories
@@ -58,3 +62,249 @@ DELETE {{Azul.Api_HostAddress}}/api/categories/{{categoryId}}
 
 ### Borrar un id que no existe -> 404
 DELETE {{Azul.Api_HostAddress}}/api/categories/99999
+
+### ===== Servicios (Offering) =====
+
+### Listar todos los servicios (búsqueda sin filtros, página 1 de 12)
+GET {{Azul.Api_HostAddress}}/api/services
+Accept: application/json
+
+### Traer un servicio por id
+GET {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
+Accept: application/json
+
+### Servicio que no existe -> 404 (not_found, resource offering)
+GET {{Azul.Api_HostAddress}}/api/services/99999
+Accept: application/json
+
+### Crear un servicio -> 201 con header Location
+POST {{Azul.Api_HostAddress}}/api/services
+Content-Type: application/json
+
+{
+  "name": "Destapaciones",
+  "categoryId": {{categoryId}}
+}
+
+### Mismo nombre en la misma categoría (otro caso y con espacios) -> 409 (duplicate_value, field name)
+POST {{Azul.Api_HostAddress}}/api/services
+Content-Type: application/json
+
+{
+  "name": "  destapaciones ",
+  "categoryId": {{categoryId}}
+}
+
+### Mismo nombre en OTRA categoría -> 201 (es único por categoría)
+POST {{Azul.Api_HostAddress}}/api/services
+Content-Type: application/json
+
+{
+  "name": "Destapaciones",
+  "categoryId": {{otherCategoryId}}
+}
+
+### Categoría que no existe -> 400 con errors.categoryId
+POST {{Azul.Api_HostAddress}}/api/services
+Content-Type: application/json
+
+{
+  "name": "Pintura",
+  "categoryId": 99999
+}
+
+### Sin categoryId -> 400 (validación del DTO)
+POST {{Azul.Api_HostAddress}}/api/services
+Content-Type: application/json
+
+{
+  "name": "Pintura"
+}
+
+### Editar un servicio -> 204
+PUT {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
+Content-Type: application/json
+
+{
+  "name": "Destapaciones y cloacas",
+  "categoryId": {{categoryId}}
+}
+
+### Editar con el nombre de otro servicio de la misma categoría -> 409 (cambiá el nombre por uno que exista)
+PUT {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
+Content-Type: application/json
+
+{
+  "name": "Electricidad",
+  "categoryId": {{categoryId}}
+}
+
+### Mover a una categoría que no existe -> 400 con errors.categoryId
+PUT {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
+Content-Type: application/json
+
+{
+  "name": "Destapaciones",
+  "categoryId": 99999
+}
+
+### Editar un servicio que no existe -> 404
+PUT {{Azul.Api_HostAddress}}/api/services/99999
+Content-Type: application/json
+
+{
+  "name": "Destapaciones",
+  "categoryId": {{categoryId}}
+}
+
+### Borrar un servicio -> 204 (cambiá el id por uno que puedas borrar)
+DELETE {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
+
+### Borrar un servicio que no existe -> 404 (not_found, resource offering)
+DELETE {{Azul.Api_HostAddress}}/api/services/99999
+
+### Servicios de una categoría que tiene servicios -> 200 con la lista ordenada por nombre
+GET {{Azul.Api_HostAddress}}/api/categories/{{categoryId}}/services
+Accept: application/json
+
+### Servicios de una categoría sin servicios -> 200 con [] (cambiá el id por una categoría vacía)
+GET {{Azul.Api_HostAddress}}/api/categories/{{otherCategoryId}}/services
+Accept: application/json
+
+### Servicios de una categoría que no existe -> 404 (not_found, resource category)
+GET {{Azul.Api_HostAddress}}/api/categories/99999/services
+Accept: application/json
+
+### Buscar por texto -> servicios cuyo nombre contiene "plom"
+GET {{Azul.Api_HostAddress}}/api/services?text=plom
+Accept: application/json
+
+### Filtrar por categoría
+GET {{Azul.Api_HostAddress}}/api/services?categoryId={{categoryId}}
+Accept: application/json
+
+### Texto + categoría
+GET {{Azul.Api_HostAddress}}/api/services?text=plom&categoryId={{categoryId}}
+Accept: application/json
+
+### Segunda página (de a 2 para ver hasMore con pocos datos)
+GET {{Azul.Api_HostAddress}}/api/services?page=2&pageSize=2
+Accept: application/json
+
+### Categoría que no existe -> 404 (not_found, resource category), si decidís que sea 404
+GET {{Azul.Api_HostAddress}}/api/services?categoryId=99999
+Accept: application/json
+
+### pageSize fuera de rango -> 400 (validación)
+GET {{Azul.Api_HostAddress}}/api/services?pageSize=1000
+Accept: application/json
+
+### ===== Proveedores =====
+
+### Crear un proveedor con dos servicios -> 201 con header Location y sus servicios
+POST https://localhost:7212/api/providers
+Content-Type: application/json
+
+{
+  "name": "Panadería Azul",
+  "type": "Business",
+  "offeringIds": [4]
+}
+
+### Servicio repetido en la lista -> 201 igual, guardado una sola vez
+POST {{Azul.Api_HostAddress}}/api/providers
+Content-Type: application/json
+
+{
+  "name": "Plomería Gómez",
+  "type": "Business",
+  "offeringIds": [{{offeringId}}, {{offeringId}}]
+}
+
+### Un servicio que no existe -> 400 con errors.offeringIds
+POST {{Azul.Api_HostAddress}}/api/providers
+Content-Type: application/json
+
+{
+  "name": "Cerrajería El Rápido",
+  "type": "Business",
+  "offeringIds": [{{offeringId}}, 99999]
+}
+
+### Lista de servicios vacía -> 400 (validación del DTO)
+POST {{Azul.Api_HostAddress}}/api/providers
+Content-Type: application/json
+
+{
+  "name": "Cerrajería El Rápido",
+  "type": "Business",
+  "offeringIds": []
+}
+
+### Sin nombre -> 400 (validación del DTO)
+POST {{Azul.Api_HostAddress}}/api/providers
+Content-Type: application/json
+
+{
+  "type": "Individual",
+  "offeringIds": [{{offeringId}}]
+}
+
+### Sin tipo -> 400 (validación del DTO)
+POST {{Azul.Api_HostAddress}}/api/providers
+Content-Type: application/json
+
+{
+  "name": "María González",
+  "offeringIds": [{{offeringId}}]
+}
+
+### Tipo que no existe -> 400 (el JSON no se puede convertir al enum)
+POST {{Azul.Api_HostAddress}}/api/providers
+Content-Type: application/json
+
+{
+  "name": "María González",
+  "type": "Empresa",
+  "offeringIds": [{{offeringId}}]
+}
+
+### Listar todos los proveedores (página 1 de 12, ordenados por nombre)
+GET {{Azul.Api_HostAddress}}/api/providers
+Accept: application/json
+
+### Solo negocios
+GET {{Azul.Api_HostAddress}}/api/providers?type=Business
+Accept: application/json
+
+### Segunda página de a 2 (para ver hasMore con pocos datos)
+GET {{Azul.Api_HostAddress}}/api/providers?page=2&pageSize=2
+Accept: application/json
+
+### Tipo que no existe -> 400 (validación)
+GET {{Azul.Api_HostAddress}}/api/providers?type=Empresa
+Accept: application/json
+
+### Traer un proveedor por id, con sus servicios
+GET {{Azul.Api_HostAddress}}/api/providers/{{providerId}}
+Accept: application/json
+
+### Proveedor que no existe -> 404 (not_found, resource provider)
+GET {{Azul.Api_HostAddress}}/api/providers/99999
+Accept: application/json
+
+### Proveedores de un servicio -> 200 paginado, ordenado por nombre
+GET  https://localhost:7212/api/services/8/providers
+Accept: application/json
+
+### Segunda página de a 1 (para ver hasMore con pocos datos)
+GET {{Azul.Api_HostAddress}}/api/services/{{offeringId}}/providers?page=2&pageSize=1
+Accept: application/json
+
+### Proveedores de un servicio que no existe -> 404 (not_found, resource offering)
+GET {{Azul.Api_HostAddress}}/api/services/99999/providers
+Accept: application/json
+
+### Borrar un servicio que algún proveedor ofrece -> hoy 500 (la FK Restrict lo frena en la base).
+### Cuando hagas el TODO de OfferingService.DeleteAsync tiene que ser 409.
+DELETE {{Azul.Api_HostAddress}}/api/services/{{offeringId}}
