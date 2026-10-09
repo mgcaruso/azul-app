@@ -25,7 +25,7 @@ public class ProvidersController(IProviderService providerService) : ControllerB
         return Ok(await providerService.GetByIdAsync(id));
     }
 
-    [HttpGet("/api/services/{offeringId:int}/providers")]
+    [HttpGet("/api/offerings/{offeringId:int}/providers")]
     [ProducesResponseType<PagedResult<ProviderSummaryDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]

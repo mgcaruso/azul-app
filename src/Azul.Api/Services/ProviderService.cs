@@ -44,11 +44,11 @@ public class ProviderService(AppDbContext dbContext) : IProviderService
     {
         var offeringIds = providerSaveDto.OfferingIds.Distinct().ToList();
         
-        var servicesDb =await dbContext.Offerings.Where(p => offeringIds.Contains(p.Id)).ToListAsync();
+        var offeringsDb =await dbContext.Offerings.Where(p => offeringIds.Contains(p.Id)).ToListAsync();
        
-        if (servicesDb.Count != offeringIds.Count)
+        if (offeringsDb.Count != offeringIds.Count)
         {
-            var missing = offeringIds.Except(servicesDb.Select(o => o.Id));
+            var missing = offeringIds.Except(offeringsDb.Select(o => o.Id));
             throw ValidationFailedException.ForField("offeringIds", $"No existen los servicios: {string.Join(", ", missing)}.");
         }
 
@@ -76,7 +76,7 @@ public class ProviderService(AppDbContext dbContext) : IProviderService
                ?? throw new NotFoundException("provider", id);
     }
 
-    // GET /api/services/{offeringId}/providers?page=&pageSize=
+    // GET /api/offerings/{offeringId}/providers?page=&pageSize=
     public async Task<PagedResult<ProviderSummaryDto>> GetByOfferingAsync(int offeringId, PageQuery pageQuery)
     {
         

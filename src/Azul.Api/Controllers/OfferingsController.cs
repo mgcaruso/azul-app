@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Azul.Api.Controllers;
 
 [ApiController]
-[Route("api/services")]
+[Route("api/offerings")]
 public class OfferingsController(IOfferingService offeringService) : ControllerBase
 {
     [HttpGet]
@@ -24,7 +24,7 @@ public class OfferingsController(IOfferingService offeringService) : ControllerB
         return Ok(await offeringService.GetByIdAsync(id));
     }
 
-    [HttpGet("/api/categories/{categoryId:int}/services")]
+    [HttpGet("/api/categories/{categoryId:int}/offerings")]
     [ProducesResponseType<List<OfferingSummaryDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<OfferingSummaryDto>>> GetByCategory(int categoryId)
