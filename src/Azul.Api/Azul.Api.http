@@ -1,7 +1,9 @@
-@Azul.Api_HostAddress = http://localhost:5297
+﻿@Azul.Api_HostAddress = http://localhost:5297
 @categoryId = 1
 @otherCategoryId = 2
 @offeringId = 1
+@otherOfferingId = 2
+@providerId = 1
 
 ### Listar todas las categorías (ordenadas por nombre)
 GET {{Azul.Api_HostAddress}}/api/categories
@@ -196,3 +198,113 @@ Accept: application/json
 ### pageSize fuera de rango -> 400 (validación)
 GET {{Azul.Api_HostAddress}}/api/services?pageSize=1000
 Accept: application/json
+
+### ===== Proveedores =====
+
+### Crear un proveedor con dos servicios -> 201 con header Location y sus servicios
+POST https://localhost:7212/api/providers
+Content-Type: application/json
+
+{
+  "name": "Panadería Azul",
+  "type": "Business",
+  "offeringIds": [4]
+}
+
+### Servicio repetido en la lista -> 201 igual, guardado una sola vez
+POST {{Azul.Api_HostAddress}}/api/providers
+Content-Type: application/json
+
+{
+  "name": "Plomería Gómez",
+  "type": "Business",
+  "offeringIds": [{{offeringId}}, {{offeringId}}]
+}
+
+### Un servicio que no existe -> 400 con errors.offeringIds
+POST {{Azul.Api_HostAddress}}/api/providers
+Content-Type: application/json
+
+{
+  "name": "Cerrajería El Rápido",
+  "type": "Business",
+  "offeringIds": [{{offeringId}}, 99999]
+}
+
+### Lista de servicios vacía -> 400 (validación del DTO)
+POST {{Azul.Api_HostAddress}}/api/providers
+Content-Type: application/json
+
+{
+  "name": "Cerrajería El Rápido",
+  "type": "Business",
+  "offeringIds": []
+}
+
+### Sin nombre -> 400 (validación del DTO)
+POST {{Azul.Api_HostAddress}}/api/providers
+Content-Type: application/json
+
+{
+  "type": "Individual",
+  "offeringIds": [{{offeringId}}]
+}
+
+### Sin tipo -> 400 (validación del DTO)
+POST {{Azul.Api_HostAddress}}/api/providers
+Content-Type: application/json
+
+{
+  "name": "María González",
+  "offeringIds": [{{offeringId}}]
+}
+
+### Tipo que no existe -> 400 (el JSON no se puede convertir al enum)
+POST {{Azul.Api_HostAddress}}/api/providers
+Content-Type: application/json
+
+{
+  "name": "María González",
+  "type": "Empresa",
+  "offeringIds": [{{offeringId}}]
+}
+
+### Listar todos los proveedores (página 1 de 12, ordenados por nombre)
+GET {{Azul.Api_HostAddress}}/api/providers
+Accept: application/json
+
+### Solo negocios
+GET {{Azul.Api_HostAddress}}/api/providers?type=Business
+Accept: application/json
+
+### Segunda página de a 2 (para ver hasMore con pocos datos)
+GET {{Azul.Api_HostAddress}}/api/providers?page=2&pageSize=2
+Accept: application/json
+
+### Tipo que no existe -> 400 (validación)
+GET {{Azul.Api_HostAddress}}/api/providers?type=Empresa
+Accept: application/json
+
+### Traer un proveedor por id, con sus servicios
+GET {{Azul.Api_HostAddress}}/api/providers/{{providerId}}
+Accept: application/json
+
+### Proveedor que no existe -> 404 (not_found, resource provider)
+GET {{Azul.Api_HostAddress}}/api/providers/99999
+Accept: application/json
+
+### Proveedores de un servicio -> 200 paginado, ordenado por nombre
+GET  https://localhost:7212/api/services/8/providers
+Accept: application/json
+
+### Segunda página de a 1 (para ver hasMore con pocos datos)
+GET {{Azul.Api_HostAddress}}/api/services/{{offeringId}}/providers?page=2&pageSize=1
+Accept: application/json
+
+### Proveedores de un servicio que no existe -> 404 (not_found, resource offering)
+GET {{Azul.Api_HostAddress}}/api/services/99999/providers
+Accept: application/json
+
+### Borrar un servicio que algún proveedor ofrece -> hoy 500 (la FK Restrict lo frena en la base).
+### Cuando hagas el TODO de OfferingService.DeleteAsync tiene que ser 409.
+DELETE {{Azul.Api_HostAddress}}/api/services/{{offeringId}}

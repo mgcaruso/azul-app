@@ -1,5 +1,7 @@
 ﻿using Azul.Api.Common.ErrorHandling;
 using Azul.Api.Data;
+using Azul.Api.Data.Seed;
+using System.Text.Json.Serialization;
 using Azul.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,8 +15,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IOfferingService, OfferingService>();
+builder.Services.AddScoped<IProviderService, ProviderService>();
 
-builder.Services.AddControllers();
+// Los enums viajan en el JSON como texto ("Business") y no como número.
+builder.Services.AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 // Manejo global de errores: AppExceptionHandler traduce las excepciones a ProblemDetails (RFC 9457).
 builder.Services.AddExceptionHandler<AppExceptionHandler>();
@@ -41,6 +46,14 @@ app.UseExceptionHandler();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // Datos de prueba: solo en desarrollo y solo si la base está vacía.
+    // TODO (Guada): descomentar cuando DevSeeder esté listo (hoy tira NotImplementedException).
+    // using (var scope = app.Services.CreateScope())
+    // {
+    //     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    //     await DevSeeder.SeedAsync(dbContext);
+    // }
+
     app.MapOpenApi();
     app.UseSwaggerUI(options =>
     {
