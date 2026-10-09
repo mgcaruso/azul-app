@@ -308,3 +308,40 @@ Accept: application/json
 ### Borrar un servicio que algún proveedor ofrece -> hoy 500 (la FK Restrict lo frena en la base).
 ### Cuando hagas el TODO de OfferingService.DeleteAsync tiene que ser 409.
 DELETE {{Azul.Api_HostAddress}}/api/offerings/{{offeringId}}
+
+
+### Editar un proveedor (nombre, tipo y servicios) -> 204
+PUT {{Azul.Api_HostAddress}}/api/providers/{{providerId}}
+Content-Type: application/json
+
+{
+  "name": "Panadería Azul",
+  "type": "Business",
+  "offeringIds": [{{offeringId}}]
+}
+
+### Editar con un servicio que no existe -> 400 con errors.offeringIds
+PUT {{Azul.Api_HostAddress}}/api/providers/{{providerId}}
+Content-Type: application/json
+
+{
+  "name": "Panadería Azul",
+  "type": "Business",
+  "offeringIds": [99999]
+}
+
+### Editar un proveedor que no existe -> 404 (not_found, resource provider)
+PUT {{Azul.Api_HostAddress}}/api/providers/99999
+Content-Type: application/json
+
+{
+  "name": "Panadería Azul",
+  "type": "Business",
+  "offeringIds": [{{offeringId}}]
+}
+
+### Borrar un proveedor -> 204 (cambiá el id por uno que puedas borrar)
+DELETE {{Azul.Api_HostAddress}}/api/providers/{{providerId}}
+
+### Borrar un proveedor que no existe -> 404 (not_found, resource provider)
+DELETE {{Azul.Api_HostAddress}}/api/providers/99999

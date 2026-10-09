@@ -43,4 +43,23 @@ public class ProvidersController(IProviderService providerService) : ControllerB
         var created = await providerService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
+
+    [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> Update(int id, [FromBody] ProviderSaveDto dto)
+    {
+        await providerService.UpdateAsync(id, dto);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> Delete(int id)
+    {
+        await providerService.DeleteAsync(id);
+        return NoContent();
+    }
 }

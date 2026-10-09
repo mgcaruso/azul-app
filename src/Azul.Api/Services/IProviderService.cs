@@ -8,5 +8,7 @@ public interface IProviderService
     Task<PagedResult<ProviderSummaryDto>> GetAllAsync(ProviderSearchQuery query);
     Task<ProviderDto> CreateAsync(ProviderSaveDto providerSaveDto);
     Task<ProviderDto> GetByIdAsync(int id);
+    Task UpdateAsync(int id, ProviderSaveDto providerSaveDto);
+    Task DeleteAsync(int id);
     Task<PagedResult<ProviderSummaryDto>> GetByOfferingAsync(int offeringId, PageQuery pageQuery);
 }

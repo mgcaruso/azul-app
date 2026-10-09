@@ -43,14 +43,7 @@ public class ProviderService(AppDbContext dbContext) : IProviderService
     public async Task<ProviderDto> CreateAsync(ProviderSaveDto providerSaveDto)
     {
         var offeringIds = providerSaveDto.OfferingIds.Distinct().ToList();
-        
-        var offeringsDb =await dbContext.Offerings.Where(p => offeringIds.Contains(p.Id)).ToListAsync();
-       
-        if (offeringsDb.Count != offeringIds.Count)
-        {
-            var missing = offeringIds.Except(offeringsDb.Select(o => o.Id));
-            throw ValidationFailedException.ForField("offeringIds", $"No existen los servicios: {string.Join(", ", missing)}.");
-        }
+        await EnsureOfferingsExist(offeringIds);
 
         var provider = new Provider
         {
@@ -64,7 +57,43 @@ public class ProviderService(AppDbContext dbContext) : IProviderService
 
         return await GetByIdAsync(provider.Id);
     }
-    
+
+    // PUT /api/providers/{id}
+    public async Task UpdateAsync(int id, ProviderSaveDto providerSaveDto)
+    {
+        var provider = await dbContext.Providers
+                           .Include(p => p.Offerings)
+                           .FirstOrDefaultAsync(p => p.Id == id)
+                       ?? throw new NotFoundException("provider", id);
+
+        var offeringIds = providerSaveDto.OfferingIds.Distinct().ToList();
+        await EnsureOfferingsExist(offeringIds);
+
+        provider.Name = providerSaveDto.Name.Trim();
+        provider.Type = providerSaveDto.Type!.Value;
+
+        provider.Offerings.RemoveAll(po => !offeringIds.Contains(po.OfferingId));
+        var currentIds = provider.Offerings.Select(po => po.OfferingId).ToList();
+        provider.Offerings.AddRange(offeringIds
+            .Except(currentIds)
+            .Select(offeringId => new ProviderOffering { OfferingId = offeringId, CreatedAt = DateTime.UtcNow }));
+
+        await dbContext.SaveChangesAsync();
+    }
+
+    // DELETE /api/providers/{id}
+    public async Task DeleteAsync(int id)
+    {
+        var deletedRows = await dbContext.Providers
+            .Where(p => p.Id == id)
+            .ExecuteDeleteAsync();
+
+        if (deletedRows == 0)
+        {
+            throw new NotFoundException("provider", id);
+        }
+    }
+
 
     // GET /api/providers/{id}
     public async Task<ProviderDto> GetByIdAsync(int id)
@@ -94,5 +123,18 @@ public class ProviderService(AppDbContext dbContext) : IProviderService
             .Select(ToProviderSummaryDto)
             .PaginateAsync(pageQuery);
     }
-    
+
+    private async Task EnsureOfferingsExist(List<int> offeringIds)
+    {
+        var existingIds = await dbContext.Offerings
+            .Where(o => offeringIds.Contains(o.Id))
+            .Select(o => o.Id)
+            .ToListAsync();
+
+        var missing = offeringIds.Except(existingIds).ToList();
+        if (missing.Count > 0)
+        {
+            throw ValidationFailedException.ForField("offeringIds", $"No existen los servicios: {string.Join(", ", missing)}.");
+        }
+    }
 }
