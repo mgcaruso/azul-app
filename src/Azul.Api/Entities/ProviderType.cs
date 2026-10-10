@@ -3,5 +3,6 @@
 public enum ProviderType
 {
     Individual = 1,
-    Business = 2
+    Business = 2,
+    Venture = 3
 }
