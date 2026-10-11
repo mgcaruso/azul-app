@@ -19,6 +19,8 @@ public class OfferingsController(IOfferingService offeringService) : ControllerB
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType<OfferingDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<OfferingDto>> GetById(int id)
     {
         return Ok(await offeringService.GetByIdAsync(id));
@@ -33,6 +35,9 @@ public class OfferingsController(IOfferingService offeringService) : ControllerB
     }
 
     [HttpPost]
+    [ProducesResponseType<OfferingDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<OfferingDto>> Create([FromBody] OfferingSaveDto dto)
     {
         var created = await offeringService.CreateAsync(dto);
@@ -40,6 +45,10 @@ public class OfferingsController(IOfferingService offeringService) : ControllerB
     }
 
     [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> Update(int id, [FromBody] OfferingSaveDto dto)
     {
         await offeringService.UpdateAsync(id, dto);
@@ -47,6 +56,9 @@ public class OfferingsController(IOfferingService offeringService) : ControllerB
     }
 
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> Delete(int id)
     {
         await offeringService.DeleteAsync(id);

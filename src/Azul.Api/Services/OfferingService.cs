@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Azul.Api.Common.Exceptions;
 using Azul.Api.Common.Pagination;
+using Azul.Api.Common.Search;
 using Azul.Api.Data;
 using Azul.Api.DTOs;
 using Azul.Api.Entities;
@@ -35,7 +36,7 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
         var text = query.Text?.Trim();
         if (!string.IsNullOrWhiteSpace(text))
         {
-            var pattern = $"%{EscapeLike(text)}%".ToLowerInvariant();
+            var pattern = LikePattern.Contains(text);
             offerings = offerings.Where(o =>
                 EF.Functions.Like(AppDbContext.FUnaccent(o.Name.ToLower()), AppDbContext.FUnaccent(pattern)));
         }
@@ -58,7 +59,6 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
 
     public async Task<List<OfferingSummaryDto>> GetByCategoryAsync(int categoryId)
     {
-        Console.WriteLine("categoria ", categoryId);
         var categoryExists = await dbContext.Categories.AnyAsync(c => c.Id == categoryId);
         if (!categoryExists)
         {
@@ -128,6 +128,12 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
 
     public async Task DeleteAsync(int id)
     {
+        if (await dbContext.ProviderOfferings.AnyAsync(po => po.OfferingId == id))
+        {
+            throw new ConflictException(
+                "offering_has_providers", "No se puede borrar un servicio que ofrecen proveedores.");
+        }
+
         var deletedRows = await dbContext.Offerings
             .Where(o => o.Id == id)
             .ExecuteDeleteAsync();
@@ -137,9 +143,6 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
             throw new NotFoundException("offering", id);
         }
     }
-
-    private static string EscapeLike(string value)
-        => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
 
     private Task<bool> NameExists(string name, int categoryId, int? excludeId = null)
     {

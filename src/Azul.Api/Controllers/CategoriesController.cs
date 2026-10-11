@@ -9,18 +9,24 @@ namespace Azul.Api.Controllers;
 public class CategoriesController(ICategoryService categoryService) : ControllerBase
 {
     [HttpGet]
+    [ProducesResponseType<List<CategoryDto>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<List<CategoryDto>>> GetAll()
     {
         return Ok(await categoryService.GetAllAsync());
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType<CategoryDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategoryDto>> GetById(int id)
     {
         return Ok(await categoryService.GetByIdAsync(id));
     }
 
     [HttpPost]
+    [ProducesResponseType<CategoryDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<CategoryDto>> Create([FromBody] CategorySaveDto dto)
     {
         var created = await categoryService.CreateAsync(dto);
@@ -28,6 +34,10 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     }
 
     [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> Update(int id, [FromBody] CategorySaveDto dto)
     {
         await categoryService.UpdateAsync(id, dto);
@@ -35,6 +45,9 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     }
 
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> Delete(int id)
     {
         await categoryService.DeleteAsync(id);

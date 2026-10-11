@@ -1,4 +1,5 @@
-﻿using Azul.Api.Common.Exceptions;
+﻿using System.Text.Json;
+using Azul.Api.Common.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -56,11 +57,21 @@ public class AppExceptionHandler(
 
         httpContext.Response.StatusCode = status;
 
-        return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
+        var written = await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = httpContext,
             Exception = exception,
             ProblemDetails = problem
         });
+
+        // Si el cliente pide un formato que no es JSON (Swagger manda "Accept: text/plain"),
+        // el writer por defecto no escribe nada; mandamos el JSON igual para no perder el detalle.
+        if (!written)
+        {
+            await httpContext.Response.WriteAsJsonAsync(
+                problem, (JsonSerializerOptions?)null, "application/problem+json", cancellationToken);
+        }
+
+        return true;
     }
 }

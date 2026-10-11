@@ -3,19 +3,27 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Azul.Api.Data.Seed;
 
+// Carga categorías y servicios. Los proveedores se cargan a mano desde la API.
 public static class DevSeeder
 {
-    private const int RandomSeed = 42;
-
-    private const int ProviderCount = 5_000;
-
     public static async Task SeedAsync(AppDbContext dbContext)
     {
-        throw new NotImplementedException();
-    }
+        if (await dbContext.Categories.AnyAsync())
+        {
+            return;
+        }
 
-    private static Provider GenerateProvider(Random random, List<int> offeringIds)
-    {
-        throw new NotImplementedException();
+        var categories = CatalogSeedData.Catalog.Keys
+            .Select(name => new Category { Name = name })
+            .ToList();
+        dbContext.AddRange(categories);
+        await dbContext.SaveChangesAsync();
+
+        var offerings = categories
+            .SelectMany(category => CatalogSeedData.Catalog[category.Name]
+                .Select(name => new Offering { Name = name, CategoryId = category.Id }))
+            .ToList();
+        dbContext.AddRange(offerings);
+        await dbContext.SaveChangesAsync();
     }
 }
