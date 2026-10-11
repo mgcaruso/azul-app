@@ -61,6 +61,12 @@ public class CategoryService(AppDbContext dbContext) : ICategoryService
 
     public async Task DeleteAsync(int id)
     {
+        if (await dbContext.Offerings.AnyAsync(o => o.CategoryId == id))
+        {
+            throw new ConflictException(
+                "category_has_offerings", "No se puede borrar una categoría que tiene servicios.");
+        }
+
         var deletedRows = await dbContext.Categories
             .Where(c => c.Id == id)
             .ExecuteDeleteAsync();

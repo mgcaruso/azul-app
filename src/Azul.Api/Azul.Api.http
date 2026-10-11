@@ -63,6 +63,9 @@ DELETE {{Azul.Api_HostAddress}}/api/categories/{{categoryId}}
 ### Borrar un id que no existe -> 404
 DELETE {{Azul.Api_HostAddress}}/api/categories/99999
 
+### Borrar una categoría que tiene servicios -> 409 (category_has_offerings)
+DELETE {{Azul.Api_HostAddress}}/api/categories/{{categoryId}}
+
 ### ===== Servicios (Offering) =====
 
 ### Listar todos los servicios (búsqueda sin filtros, página 1 de 12)

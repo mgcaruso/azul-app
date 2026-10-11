@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Azul.Api.Common.Exceptions;
 using Azul.Api.Common.Pagination;
+using Azul.Api.Common.Search;
 using Azul.Api.Data;
 using Azul.Api.DTOs;
 using Azul.Api.Entities;
@@ -101,7 +102,7 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
         dbContext.Add(provider);
         await SaveChangesCatchingDuplicateInstagram();
 
-        return await GetByIdAsync(provider.Id);
+        return await LoadByIdAsync(provider.Id);
     }
 
     // PUT /api/providers/{id}
@@ -143,8 +144,18 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
         }
     }
 
-    // GET /api/providers/{id}
+    // GET /api/providers/{id}: solo proveedores publicados.
     public async Task<ProviderDto> GetByIdAsync(int id)
+    {
+        return await dbContext.Providers
+                   .Where(p => p.Id == id && p.Status == ProviderStatus.Published)
+                   .Select(ToProviderDto)
+                   .FirstOrDefaultAsync()
+               ?? throw new NotFoundException("provider", id);
+    }
+
+    // Sin filtrar por estado: para devolver el proveedor recién creado (queda Pending).
+    private async Task<ProviderDto> LoadByIdAsync(int id)
     {
         return await dbContext.Providers
                    .Where(p => p.Id == id)
@@ -164,9 +175,26 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
 
         IQueryable<Provider> providersDb = dbContext.Providers
             .Where(p => p.Status == ProviderStatus.Published)
-            .Where(p => p.Offerings.Any(po => po.Offering.Id == offeringId));
+            .Where(p => p.Offerings.Any(po => po.OfferingId == offeringId));
 
         return await providersDb
+            .OrderBy(p => p.DisplayName)
+            .ThenBy(p => p.Id)
+            .Select(ToProviderSummaryDto)
+            .PaginateAsync(pageQuery);
+    }
+
+    // Proveedores publicados cuyo nombre, o el de alguno de sus servicios, contiene el texto
+    // (sin importar tildes ni mayúsculas).
+    public async Task<PagedResult<ProviderSummaryDto>> SearchByNameOrServiceNameAsync(string text, PageQuery pageQuery)
+    {
+        var pattern = LikePattern.Contains(text.Trim());
+
+        return await dbContext.Providers
+            .Where(p => p.Status == ProviderStatus.Published)
+            .Where(p => EF.Functions.Like(AppDbContext.FUnaccent(p.DisplayName.ToLower()), AppDbContext.FUnaccent(pattern))
+                        || p.Offerings.Any(po => EF.Functions.Like(
+                            AppDbContext.FUnaccent(po.Offering.Name.ToLower()), AppDbContext.FUnaccent(pattern))))
             .OrderBy(p => p.DisplayName)
             .ThenBy(p => p.Id)
             .Select(ToProviderSummaryDto)

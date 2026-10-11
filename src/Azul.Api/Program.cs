@@ -10,6 +10,13 @@ using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Falla al arrancar (no en el primer request) si falta la dirección base de las fotos.
+// En producción va por variable de entorno: Photos__BaseUrl.
+if (string.IsNullOrWhiteSpace(builder.Configuration["Photos:BaseUrl"]))
+{
+    throw new InvalidOperationException("Falta la configuración Photos:BaseUrl.");
+}
+
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
@@ -17,6 +24,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IOfferingService, OfferingService>();
 builder.Services.AddScoped<IProviderService, ProviderService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddSingleton<IPhoneHasher, PhoneHasher>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
