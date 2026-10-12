@@ -7,8 +7,22 @@ public class SearchQueryValidator : AbstractValidator<SearchQuery>
 {
     public SearchQueryValidator()
     {
+        Include(new PageQueryValidator());
+
+        // Sin mínimo: la pantalla sin texto usa el mismo endpoint.
         RuleFor(x => x.Text)
-            .Must(text => text.Trim().Length >= 2).WithMessage("Escribí al menos 2 letras.")
             .MaximumLength(100).WithMessage("El texto de búsqueda no puede superar los 100 caracteres.");
+
+        RuleFor(x => x.CategoryIds)
+            .Must(ids => ids.Count <= 20).WithMessage("Se pueden elegir hasta 20 categorías.")
+            .OverridePropertyName("category");
+
+        RuleForEach(x => x.CategoryIds)
+            .GreaterThan(0).WithMessage("La categoría no es válida.")
+            .OverridePropertyName("category");
+
+        RuleFor(x => x.OfferingId)
+            .GreaterThan(0).WithMessage("El servicio no es válido.")
+            .OverridePropertyName("offering");
     }
 }

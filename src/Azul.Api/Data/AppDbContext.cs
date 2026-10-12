@@ -1,4 +1,5 @@
-﻿using Azul.Api.Entities;
+﻿using Azul.Api.Common.Search;
+using Azul.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Azul.Api.Data;
@@ -19,6 +20,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.HasPostgresExtension("pg_trgm");
 
         modelBuilder.HasDbFunction(() => FUnaccent(default!)).HasName("f_unaccent");
+        modelBuilder.HasDbFunction(() => SearchText.Matches(default, default!)).HasName("f_matches");
 
         modelBuilder.Entity<Provider>(p =>
         {

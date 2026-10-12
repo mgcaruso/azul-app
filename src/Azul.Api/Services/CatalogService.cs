@@ -21,7 +21,7 @@ public class CatalogService(IOfferingService offeringService, IProviderService p
     }
 
     // Buscador principal: junta servicios y proveedores usando las búsquedas de cada service.
-    public async Task<SearchResultDto> SearchAsync(SearchQuery query)
+    public async Task<SearchResultDto> SearchAsync2(SearchQuery query)
     {
         var text = query.Text.Trim();
 
@@ -31,5 +31,11 @@ public class CatalogService(IOfferingService offeringService, IProviderService p
         var providers = await providerService.SearchByNameOrServiceNameAsync(
             text, new PageQuery { PageSize = ProvidersLimit });
         return new SearchResultDto { Offerings = offerings, Providers = providers };
+    }
+
+    // GET /api/search. La lógica está en ProviderService, que tiene el DbContext y la proyección de la card.
+    public async Task<SearchResponseDto> SearchAsync(SearchQuery query)
+    {
+        return await providerService.SearchAsync(query);
     }
 }

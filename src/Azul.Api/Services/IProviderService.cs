@@ -15,4 +15,6 @@ public interface IProviderService
     Task<List<ProviderSummaryDto>> GetLatestAsync();
     
     Task<List<ProviderSummaryDto>> GetFeaturedAsync();
+
+    Task<SearchResponseDto> SearchAsync(SearchQuery query);
 }

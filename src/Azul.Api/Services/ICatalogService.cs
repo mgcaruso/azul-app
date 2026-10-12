@@ -5,5 +5,6 @@ namespace Azul.Api.Services;
 public interface ICatalogService
 {
     Task<CatalogInitializeDto> GetCatalogAsync();
-    Task<SearchResultDto> SearchAsync(SearchQuery query);
+    Task<SearchResultDto> SearchAsync2(SearchQuery query);
+    Task<SearchResponseDto> SearchAsync(SearchQuery query);
 }
