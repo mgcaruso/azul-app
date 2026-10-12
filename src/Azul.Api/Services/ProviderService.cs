@@ -201,6 +201,36 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
             .PaginateAsync(pageQuery);
     }
 
+    private IQueryable<Provider> GetPublishedProviders()
+    {
+        return dbContext.Providers.Where(p => p.Status == ProviderStatus.Published);
+    }
+    public async Task<List<ProviderSummaryDto>> GetLatestAsync()
+    {
+        var providersDb = await GetPublishedProviders()
+            .OrderByDescending(p => p.FirstPublishedAt)
+            .ThenByDescending(p => p.Id)
+            .Take(6)
+            .Select(ToProviderSummaryDto)
+            .ToListAsync();
+        return providersDb;
+    }
+
+
+    public async Task<List<ProviderSummaryDto>> GetFeaturedAsync()
+    {
+        var providersDb = await GetPublishedProviders()
+            .Where(p => p.Description != null && p.InstagramUsername != null  && p.PhotoKey != null)
+            .OrderBy(p => p.DisplayName)
+            .ThenBy(p => p.Id)
+            .Take(6)
+            .Select(ToProviderSummaryDto)
+            .ToListAsync();
+        return providersDb;
+    }
+
+
+
     // Copia los datos del request (ya normalizado y validado) al Provider.
     private static void ApplyFields(Provider provider, ProviderSaveDto dto)
     {

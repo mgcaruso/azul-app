@@ -72,6 +72,16 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
             .ToListAsync();
     }
 
+    // Servicios al azar (Home). Distintos en cada llamada; Postgres sortea con random().
+    public async Task<List<OfferingSummaryDto>> GetRandomAsync(int count)
+    {
+        return await dbContext.Offerings
+            .OrderBy(o => EF.Functions.Random())
+            .Take(count)
+            .Select(ToSummaryDto)
+            .ToListAsync();
+    }
+
     public async Task<OfferingDto> CreateAsync(OfferingSaveDto offeringSaveDto)
     {
         var categoryId = offeringSaveDto.CategoryId!.Value;

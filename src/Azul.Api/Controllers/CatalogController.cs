@@ -1,0 +1,29 @@
+using Azul.Api.DTOs;
+using Azul.Api.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Azul.Api.Controllers;
+
+// Endpoints que combinan varias entidades para explorar el catálogo (Home, buscador principal).
+// Lo que pertenece a una sola entidad va en el controller de esa entidad.
+[ApiController]
+[Route("api/catalog")]
+public class CatalogController(ICatalogService catalogService) : ControllerBase
+{
+    // GET /api/catalog/initialize
+    [HttpGet("initialize")]
+    [ProducesResponseType<CatalogInitializeDto>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<CatalogInitializeDto>> GetCatalog()
+    {
+        return Ok(await catalogService.GetCatalogAsync());
+    }
+
+    // GET /api/catalog/search?text=torta
+    [HttpGet("search")]
+    [ProducesResponseType<SearchResultDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<SearchResultDto>> Search([FromQuery] SearchQuery query)
+    {
+        return Ok(await catalogService.SearchAsync(query));
+    }
+}

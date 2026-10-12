@@ -2,7 +2,8 @@ using Azul.Api.DTOs;
 
 namespace Azul.Api.Services;
 
-public interface ISearchService
+public interface ICatalogService
 {
+    Task<CatalogInitializeDto> GetCatalogAsync();
     Task<SearchResultDto> SearchAsync(SearchQuery query);
 }

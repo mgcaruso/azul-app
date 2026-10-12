@@ -10,12 +10,13 @@ namespace Azul.Api.Services;
 public class CategoryService(AppDbContext dbContext) : ICategoryService
 {
     private static readonly Expression<Func<Category, CategoryDto>> ToDto =
-        c => new CategoryDto { Id = c.Id, Name = c.Name };
+        (c) => new CategoryDto { Id = c.Id, Name = c.Name, OfferingsCount = c.Offerings.Count };
 
     public async Task<List<CategoryDto>> GetAllAsync()
     {
         return await dbContext.Categories
-            .OrderBy(c => c.Name)
+            .OrderByDescending(c => c.Offerings.Count)
+            .ThenBy(c => c.Name)
             .Select(ToDto)
             .ToListAsync();
     }

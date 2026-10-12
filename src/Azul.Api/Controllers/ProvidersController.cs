@@ -62,4 +62,12 @@ public class ProvidersController(IProviderService providerService) : ControllerB
         await providerService.DeleteAsync(id);
         return NoContent();
     }
+
+    [HttpGet("featured")]
+    [ProducesResponseType<List<ProviderSummaryDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<ProviderSummaryDto>>> GetFeatured()
+    {
+        return Ok(await providerService.GetFeaturedAsync());
+    }
+    
 }

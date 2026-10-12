@@ -8,4 +8,5 @@ public class Category
     [MaxLength(100)]
     public required string Name { get; set; }
 
+    public List<Offering> Offerings { get; set; } = [];
 }

@@ -105,7 +105,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         // No se puede borrar una categoría que tiene servicios (el service responde 409).
         modelBuilder.Entity<Offering>()
             .HasOne(o => o.Category)
-            .WithMany()
+            .WithMany(c => c.Offerings)
             .HasForeignKey(o => o.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
