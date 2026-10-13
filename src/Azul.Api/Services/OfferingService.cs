@@ -37,8 +37,7 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
         if (!string.IsNullOrWhiteSpace(text))
         {
             var pattern = LikePattern.Contains(text);
-            offerings = offerings.Where(o =>
-                EF.Functions.Like(AppDbContext.FUnaccent(o.Name.ToLower()), AppDbContext.FUnaccent(pattern)));
+            offerings = offerings.Where(o => SearchText.Matches(o.Name, pattern));
         }
 
         return await offerings

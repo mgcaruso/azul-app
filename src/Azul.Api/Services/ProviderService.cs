@@ -62,13 +62,12 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
     // GET /api/providers?type=&page=&pageSize=
     public async Task<PagedResult<ProviderSummaryDto>> GetAllAsync(ProviderSearchQuery query)
     {
-        IQueryable<Provider> providerQueryable = dbContext.Providers
-            .Where(p => p.Status == ProviderStatus.Published);
-        if (query.Type is not null)
-        {
-            providerQueryable = providerQueryable.Where(p => p.Type == query.Type);
-        }
-        return await providerQueryable.OrderBy(p => p.DisplayName).ThenBy(p => p.Id).Select(ToProviderSummaryDto).PaginateAsync(query);
+        return await GetPublishedProviders()
+            .WhereType(query.Type)
+            .OrderBy(p => p.DisplayName)
+            .ThenBy(p => p.Id)
+            .Select(ToProviderSummaryDto)
+            .PaginateAsync(query);
     }
 
     // POST /api/providers
@@ -119,14 +118,15 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
         await EnsureOfferingsExist(offeringIds);
         await EnsureInstagramIsFree(providerSaveDto.InstagramUsername, excludeId: id);
 
+        var now = DateTime.UtcNow;
         ApplyFields(provider, providerSaveDto);
-        provider.UpdatedAt = DateTime.UtcNow;
+        provider.UpdatedAt = now;
 
         provider.Offerings.RemoveAll(po => !offeringIds.Contains(po.OfferingId));
         var currentIds = provider.Offerings.Select(po => po.OfferingId).ToList();
         provider.Offerings.AddRange(offeringIds
             .Except(currentIds)
-            .Select(offeringId => new ProviderOffering { OfferingId = offeringId, CreatedAt = DateTime.UtcNow }));
+            .Select(offeringId => new ProviderOffering { OfferingId = offeringId, CreatedAt = now }));
 
         await SaveChangesCatchingDuplicateInstagram();
     }
@@ -173,8 +173,7 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
             throw new NotFoundException("offering", offeringId);
         }
 
-        IQueryable<Provider> providersDb = dbContext.Providers
-            .Where(p => p.Status == ProviderStatus.Published)
+        var providersDb = GetPublishedProviders()
             .Where(p => p.Offerings.Any(po => po.OfferingId == offeringId));
 
         return await providersDb
@@ -184,27 +183,60 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
             .PaginateAsync(pageQuery);
     }
 
-    // Proveedores publicados cuyo nombre, o el de alguno de sus servicios, contiene el texto
-    // (sin importar tildes ni mayúsculas).
-    public async Task<PagedResult<ProviderSummaryDto>> SearchByNameOrServiceNameAsync(string text, PageQuery pageQuery)
+    // GET /api/search: página de proveedores + filtros (categorías y servicios).
+    // Los filtros vuelven vacíos por ahora.
+    public async Task<SearchResponseDto> GetProvidersCatalogAsync(SearchQuery query)
     {
-        var pattern = LikePattern.Contains(text.Trim());
+        var providers = await GetProviderPageAsync(query);
 
-        return await dbContext.Providers
-            .Where(p => p.Status == ProviderStatus.Published)
-            .Where(p => EF.Functions.Like(AppDbContext.FUnaccent(p.DisplayName.ToLower()), AppDbContext.FUnaccent(pattern))
-                        || p.Offerings.Any(po => EF.Functions.Like(
-                            AppDbContext.FUnaccent(po.Offering.Name.ToLower()), AppDbContext.FUnaccent(pattern))))
-            .OrderBy(p => p.DisplayName)
-            .ThenBy(p => p.Id)
+        return new SearchResponseDto
+        {
+            Providers = providers,
+            Filters = new SearchFiltersDto()
+        };
+    }
+
+    // Publicados + filtros de la request. Cada filtro que viene suma un Where ("y").
+    // Para texto: SearchText.Matches(columna, LikePattern.Contains(texto)).
+    private IQueryable<Provider> GetPublishedProvidersFiltered(SearchQuery query)
+    {
+        return GetPublishedProviders()
+            .WhereMatchesText(query.Text)
+            .WhereInCategories(query.CategoryIds)
+            .WhereType(query.ProviderType);
+    }
+
+  
+    // Total = todos los que cumplen los filtros de la request; Items ordenados según SortBy y paginados;
+    // HasMore = Page * PageSize < Total.
+    private async Task<ProviderSearchPageDto> GetProviderPageAsync(SearchQuery query)
+    {
+        var filteredProviders = GetPublishedProvidersFiltered(query);
+
+        // Total de todos los que cumplen los filtros, antes de paginar.
+        var total = await filteredProviders.CountAsync();
+
+        // El orden va antes del Select.
+        var page = await filteredProviders
+            .OrderBySort(query.SortBy)
             .Select(ToProviderSummaryDto)
-            .PaginateAsync(pageQuery);
+            .PaginateAsync(query);
+
+        return new ProviderSearchPageDto
+        {
+            Items = page.Items,
+            Page = page.Page,
+            PageSize = page.PageSize,
+            HasMore = page.HasMore,
+            Total = total
+        };
     }
 
     private IQueryable<Provider> GetPublishedProviders()
     {
         return dbContext.Providers.Where(p => p.Status == ProviderStatus.Published);
     }
+
     public async Task<List<ProviderSummaryDto>> GetLatestAsync()
     {
         var providersDb = await GetPublishedProviders()
@@ -216,11 +248,10 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
         return providersDb;
     }
 
-
     public async Task<List<ProviderSummaryDto>> GetFeaturedAsync()
     {
         var providersDb = await GetPublishedProviders()
-            .Where(p => p.Description != null && p.InstagramUsername != null  && p.PhotoKey != null)
+            .Where(ProviderProfile.IsComplete)
             .OrderBy(p => p.DisplayName)
             .ThenBy(p => p.Id)
             .Take(6)
@@ -228,8 +259,6 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
             .ToListAsync();
         return providersDb;
     }
-
-
 
     // Copia los datos del request (ya normalizado y validado) al Provider.
     private static void ApplyFields(Provider provider, ProviderSaveDto dto)

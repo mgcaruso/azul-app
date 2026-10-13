@@ -221,7 +221,7 @@ namespace Azul.Api.Migrations
             modelBuilder.Entity("Azul.Api.Entities.Offering", b =>
                 {
                     b.HasOne("Azul.Api.Entities.Category", "Category")
-                        .WithMany()
+                        .WithMany("Offerings")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -256,6 +256,11 @@ namespace Azul.Api.Migrations
                     b.Navigation("Offering");
 
                     b.Navigation("Provider");
+                });
+
+            modelBuilder.Entity("Azul.Api.Entities.Category", b =>
+                {
+                    b.Navigation("Offerings");
                 });
 
             modelBuilder.Entity("Azul.Api.Entities.Provider", b =>
