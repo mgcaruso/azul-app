@@ -20,9 +20,6 @@ public class SearchQueryValidator : AbstractValidator<SearchQuery>
         RuleForEach(x => x.CategoryIds)
             .GreaterThan(0).WithMessage("La categoría no es válida.")
             .OverridePropertyName("category");
-
-        RuleFor(x => x.OfferingId)
-            .GreaterThan(0).WithMessage("El servicio no es válido.")
-            .OverridePropertyName("offering");
+        
     }
 }

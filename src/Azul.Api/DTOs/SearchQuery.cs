@@ -14,10 +14,9 @@ public class SearchQuery : PageQuery
     public List<int> CategoryIds { get; set; } = [];
 
     public ProviderType? ProviderType { get; set; }
-
-    // El servicio que se toca en filters.offerings.
-    [FromQuery(Name = "offering")]
-    public int? OfferingId { get; set; }
+    
 
     public ProviderSort SortBy { get; set; } = ProviderSort.Featured;
+    
+    
 }

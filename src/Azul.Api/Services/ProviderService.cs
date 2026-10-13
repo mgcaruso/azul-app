@@ -14,7 +14,6 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
     : IProviderService
 {
     private const string InstagramUniqueIndex = "IX_Providers_InstagramUsername";
-    private const int OfferingFiltersLimit = 10;
 
     // En la base va la key; al front se le devuelve la URL armada con la dirección base.
     private readonly string photoBaseUrl = configuration["Photos:BaseUrl"]
@@ -63,13 +62,12 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
     // GET /api/providers?type=&page=&pageSize=
     public async Task<PagedResult<ProviderSummaryDto>> GetAllAsync(ProviderSearchQuery query)
     {
-        IQueryable<Provider> providerQueryable = dbContext.Providers
-            .Where(p => p.Status == ProviderStatus.Published);
-        if (query.Type is not null)
-        {
-            providerQueryable = providerQueryable.Where(p => p.Type == query.Type);
-        }
-        return await providerQueryable.OrderBy(p => p.DisplayName).ThenBy(p => p.Id).Select(ToProviderSummaryDto).PaginateAsync(query);
+        return await GetPublishedProviders()
+            .WhereType(query.Type)
+            .OrderBy(p => p.DisplayName)
+            .ThenBy(p => p.Id)
+            .Select(ToProviderSummaryDto)
+            .PaginateAsync(query);
     }
 
     // POST /api/providers
@@ -120,14 +118,15 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
         await EnsureOfferingsExist(offeringIds);
         await EnsureInstagramIsFree(providerSaveDto.InstagramUsername, excludeId: id);
 
+        var now = DateTime.UtcNow;
         ApplyFields(provider, providerSaveDto);
-        provider.UpdatedAt = DateTime.UtcNow;
+        provider.UpdatedAt = now;
 
         provider.Offerings.RemoveAll(po => !offeringIds.Contains(po.OfferingId));
         var currentIds = provider.Offerings.Select(po => po.OfferingId).ToList();
         provider.Offerings.AddRange(offeringIds
             .Except(currentIds)
-            .Select(offeringId => new ProviderOffering { OfferingId = offeringId, CreatedAt = DateTime.UtcNow }));
+            .Select(offeringId => new ProviderOffering { OfferingId = offeringId, CreatedAt = now }));
 
         await SaveChangesCatchingDuplicateInstagram();
     }
@@ -174,8 +173,7 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
             throw new NotFoundException("offering", offeringId);
         }
 
-        IQueryable<Provider> providersDb = dbContext.Providers
-            .Where(p => p.Status == ProviderStatus.Published)
+        var providersDb = GetPublishedProviders()
             .Where(p => p.Offerings.Any(po => po.OfferingId == offeringId));
 
         return await providersDb
@@ -185,32 +183,11 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
             .PaginateAsync(pageQuery);
     }
 
-    // Proveedores publicados cuyo nombre, o el de alguno de sus servicios, contiene el texto
-    // (sin importar tildes ni mayúsculas).
-    public async Task<PagedResult<ProviderSummaryDto>> SearchByNameOrServiceNameAsync(string text, PageQuery pageQuery)
-    {
-        var pattern = LikePattern.Contains(text.Trim());
-
-        return await dbContext.Providers
-            .Where(p => p.Status == ProviderStatus.Published)
-            .Where(p => EF.Functions.Like(AppDbContext.FUnaccent(p.DisplayName.ToLower()), AppDbContext.FUnaccent(pattern))
-                        || p.Offerings.Any(po => EF.Functions.Like(
-                            AppDbContext.FUnaccent(po.Offering.Name.ToLower()), AppDbContext.FUnaccent(pattern))))
-            .OrderBy(p => p.DisplayName)
-            .ThenBy(p => p.Id)
-            .Select(ToProviderSummaryDto)
-            .PaginateAsync(pageQuery);
-    }
-
     // GET /api/search: página de proveedores + filtros (categorías y servicios).
-    // Paso 1: solo la página de proveedores; los filtros vuelven vacíos.
-    public async Task<SearchResponseDto> SearchAsync(SearchQuery query)
+    // Los filtros vuelven vacíos por ahora.
+    public async Task<SearchResponseDto> GetProvidersCatalogAsync(SearchQuery query)
     {
-        var providers = await SearchProvidersPageAsync(query);
-
-        // Paso 2 (después): una consulta después de la otra, el DbContext no admite dos a la vez.
-        // var categories = await GetCategoryFiltersAsync(query);
-        // var offerings = await GetOfferingFiltersAsync(query);
+        var providers = await GetProviderPageAsync(query);
 
         return new SearchResponseDto
         {
@@ -221,58 +198,27 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
 
     // Publicados + filtros de la request. Cada filtro que viene suma un Where ("y").
     // Para texto: SearchText.Matches(columna, LikePattern.Contains(texto)).
-    private IQueryable<Provider> FilterForSearch(SearchQuery query)
+    private IQueryable<Provider> GetPublishedProvidersFiltered(SearchQuery query)
     {
-        var providers = GetPublishedProviders();
-
-        if (query.ProviderType is not null)
-        {
-            providers = providers.Where(p => p.Type == query.ProviderType);
-        }
-
-        if (!string.IsNullOrWhiteSpace(query.Text))
-        {
-            var pattern = LikePattern.Contains(query.Text.Trim());
-            // busco si el text coincide con nombre, descripcion del provider o con el nombre de alguno de los serivicos qeu brinda
-            providers = providers.Where(p =>
-                SearchText.Matches(p.DisplayName, pattern)
-                || SearchText.Matches(p.Description, pattern)
-                || p.Offerings.Any(po => SearchText.Matches(po.Offering.Name, pattern)));
-        }
-
-        //Busco providers que tengan algun servicio que pertenezca a alguna de las categorias que viene por query
-        if (query.CategoryIds.Count > 0)
-        {
-            providers = providers
-                .Where(p => p.Offerings.Any(po => query.CategoryIds.Contains(po.Offering.CategoryId)));
-        }
-
-        if (query.OfferingId is not null)
-        {
-            providers = providers.Where(p => p.Offerings.Any(po => po.OfferingId == query.OfferingId));
-        }
-        return providers;
+        return GetPublishedProviders()
+            .WhereMatchesText(query.Text)
+            .WhereInCategories(query.CategoryIds)
+            .WhereType(query.ProviderType);
     }
 
-    // Featured: perfil más completo primero (foto, descripción, Instagram), después el más nuevo.
-    // Newest: FirstPublishedAt descendente. Los dos desempatan por Id para que las páginas no se pisen.
-    private static IQueryable<Provider> SortForSearch(IQueryable<Provider> providers, ProviderSort sortBy)
-    {
-        throw new NotImplementedException();
-    }
-
-    // providers: Total con FilterForSearch(query); Items ordenados con SortForSearch y paginados;
+  
+    // Total = todos los que cumplen los filtros de la request; Items ordenados según SortBy y paginados;
     // HasMore = Page * PageSize < Total.
-    private async Task<ProviderSearchPageDto> SearchProvidersPageAsync(SearchQuery query)
+    private async Task<ProviderSearchPageDto> GetProviderPageAsync(SearchQuery query)
     {
-        var providers = FilterForSearch(query);
+        var filteredProviders = GetPublishedProvidersFiltered(query);
 
         // Total de todos los que cumplen los filtros, antes de paginar.
-        var total = await providers.CountAsync();
+        var total = await filteredProviders.CountAsync();
 
-        // Orden provisorio por Id hasta que esté SortForSearch. El orden va antes del Select.
-        var page = await providers
-            .OrderBy(p => p.Id)
+        // El orden va antes del Select.
+        var page = await filteredProviders
+            .OrderBySort(query.SortBy)
             .Select(ToProviderSummaryDto)
             .PaginateAsync(query);
 
@@ -286,25 +232,11 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
         };
     }
 
-    // Paso 2. filters.categories: cuántos proveedores tiene cada categoría, con los filtros de la request
-    // menos las categorías elegidas. Solo las que tienen al menos uno, ordenadas por nombre.
-    private Task<List<CategoryFilterDto>> GetCategoryFiltersAsync(SearchQuery query)
-    {
-        throw new NotImplementedException();
-    }
-
-    // Paso 2. filters.offerings: servicios cuyo nombre coincide con el texto, con cuántos proveedores
-    // los ofrecen (filtros de la request menos el servicio elegido). Solo los que tienen alguno, hasta
-    // OfferingFiltersLimit, por cantidad y nombre. Sin texto, lista vacía.
-    private Task<List<OfferingFilterDto>> GetOfferingFiltersAsync(SearchQuery query)
-    {
-        throw new NotImplementedException();
-    }
-
     private IQueryable<Provider> GetPublishedProviders()
     {
         return dbContext.Providers.Where(p => p.Status == ProviderStatus.Published);
     }
+
     public async Task<List<ProviderSummaryDto>> GetLatestAsync()
     {
         var providersDb = await GetPublishedProviders()
@@ -316,11 +248,10 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
         return providersDb;
     }
 
-
     public async Task<List<ProviderSummaryDto>> GetFeaturedAsync()
     {
         var providersDb = await GetPublishedProviders()
-            .Where(p => p.Description != null && p.InstagramUsername != null  && p.PhotoKey != null)
+            .Where(ProviderProfile.IsComplete)
             .OrderBy(p => p.DisplayName)
             .ThenBy(p => p.Id)
             .Take(6)
@@ -328,8 +259,6 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
             .ToListAsync();
         return providersDb;
     }
-
-
 
     // Copia los datos del request (ya normalizado y validado) al Provider.
     private static void ApplyFields(Provider provider, ProviderSaveDto dto)

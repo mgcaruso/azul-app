@@ -24,6 +24,6 @@ public class CatalogController(ICatalogService catalogService) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SearchResponseDto>> Search([FromQuery] SearchQuery query)
     {
-        return Ok(await catalogService.SearchAsync(query));
+        return Ok(await catalogService.GetProvidersCatalogAsync(query));
     }
 }
