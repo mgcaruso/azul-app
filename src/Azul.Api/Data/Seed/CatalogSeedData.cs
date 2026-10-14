@@ -1,6 +1,4 @@
-﻿using Azul.Api.Entities;
-
-namespace Azul.Api.Data.Seed;
+﻿namespace Azul.Api.Data.Seed;
 
 public static class CatalogSeedData
 {
@@ -73,30 +71,4 @@ public static class CatalogSeedData
             "Niñera", "Nutricionista", "Psicología online"
         ]
     };
-
-    public static readonly string[] FirstNames =
-    [
-        "María", "José", "Lucía", "Juan", "Sofía", "Martín", "Valentina", "Diego", "Camila", "Pablo",
-        "Florencia", "Nicolás", "Agustina", "Sebastián", "Julieta", "Matías", "Carolina", "Federico",
-        "Romina", "Gustavo", "Silvia", "Marcelo", "Natalia", "Facundo", "Lorena", "Hernán", "Paula",
-        "Leandro", "Gabriela", "Ezequiel", "Mariana", "Ramiro", "Andrea", "Tomás", "Verónica", "Lu"
-    ];
-
-    public static readonly string[] LastNames =
-    [
-        "González", "Rodríguez", "Gómez", "Fernández", "López", "Díaz", "Martínez", "Pérez", "García",
-        "Sánchez", "Romero", "Sosa", "Álvarez", "Torres", "Ruiz", "Ramírez", "Flores", "Acosta",
-        "Benítez", "Medina", "Herrera", "Aguirre", "Pereyra", "Gutiérrez", "Giménez", "Molina",
-        "Silva", "Castro", "Rojas", "Ortiz", "Núñez", "Luna", "Juárez", "Cabrera", "Ríos", "Ferreyra"
-    ];
-
-    public static readonly (string Format, ProviderType Type)[] NameFormats =
-    [
-        ("{0} {1}", ProviderType.Individual), ("{0} {1}", ProviderType.Individual),
-        ("{0} {1}", ProviderType.Individual), ("{0} {1}", ProviderType.Individual),
-        ("{0} a domicilio", ProviderType.Individual),
-        ("Taller {1}", ProviderType.Business), ("Lo de {0}", ProviderType.Business),
-        ("Hnos. {1}", ProviderType.Business), ("{1} Servicios", ProviderType.Business),
-        ("Las cosas de {0}", ProviderType.Business)
-    ];
 }

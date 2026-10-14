@@ -1,20 +1,21 @@
 ﻿using Azul.Api.Common.Pagination;
-using Azul.Api.DTOs;
-using Azul.Api.Services;
+using Azul.Api.DTOs.Providers;
+using Azul.Api.Services.Providers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Azul.Api.Controllers;
 
 [ApiController]
 [Route("api/providers")]
-public class ProvidersController(IProviderService providerService) : ControllerBase
+public class ProvidersController(IProviderReadService providerReadService, IProviderWriteService providerWriteService)
+    : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType<PagedResult<ProviderSummaryDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PagedResult<ProviderSummaryDto>>> GetAll([FromQuery] ProviderSearchQuery query)
     {
-        return Ok(await providerService.GetAllAsync(query));
+        return Ok(await providerReadService.GetAllAsync(query));
     }
 
     [HttpGet("{id:int}")]
@@ -22,7 +23,7 @@ public class ProvidersController(IProviderService providerService) : ControllerB
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProviderDto>> GetById(int id)
     {
-        return Ok(await providerService.GetByIdAsync(id));
+        return Ok(await providerReadService.GetByIdAsync(id));
     }
 
     [HttpGet("/api/offerings/{offeringId:int}/providers")]
@@ -32,7 +33,7 @@ public class ProvidersController(IProviderService providerService) : ControllerB
     public async Task<ActionResult<PagedResult<ProviderSummaryDto>>> GetByOffering(
         int offeringId, [FromQuery] PageQuery pageQuery)
     {
-        return Ok(await providerService.GetByOfferingAsync(offeringId, pageQuery));
+        return Ok(await providerReadService.GetByOfferingAsync(offeringId, pageQuery));
     }
 
     [HttpPost]
@@ -40,7 +41,7 @@ public class ProvidersController(IProviderService providerService) : ControllerB
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ProviderDto>> Create([FromBody] ProviderSaveDto dto)
     {
-        var created = await providerService.CreateAsync(dto);
+        var created = await providerWriteService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
@@ -50,7 +51,7 @@ public class ProvidersController(IProviderService providerService) : ControllerB
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Update(int id, [FromBody] ProviderSaveDto dto)
     {
-        await providerService.UpdateAsync(id, dto);
+        await providerWriteService.UpdateAsync(id, dto);
         return NoContent();
     }
 
@@ -59,7 +60,7 @@ public class ProvidersController(IProviderService providerService) : ControllerB
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(int id)
     {
-        await providerService.DeleteAsync(id);
+        await providerWriteService.DeleteAsync(id);
         return NoContent();
     }
 
@@ -67,7 +68,7 @@ public class ProvidersController(IProviderService providerService) : ControllerB
     [ProducesResponseType<List<ProviderSummaryDto>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ProviderSummaryDto>>> GetFeatured()
     {
-        return Ok(await providerService.GetFeaturedAsync());
+        return Ok(await providerReadService.GetFeaturedAsync());
     }
     
 }

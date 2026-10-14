@@ -1,6 +1,6 @@
 ﻿using Azul.Api.Common.Pagination;
-using Azul.Api.DTOs;
-using Azul.Api.Services;
+using Azul.Api.DTOs.Offerings;
+using Azul.Api.Services.Offerings;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Azul.Api.Controllers;

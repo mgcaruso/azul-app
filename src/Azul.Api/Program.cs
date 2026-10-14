@@ -3,6 +3,10 @@ using Azul.Api.Common.ErrorHandling;
 using Azul.Api.Data;
 using Azul.Api.Data.Seed;
 using System.Text.Json.Serialization;using Azul.Api.Services;
+using Azul.Api.Services.Catalog;
+using Azul.Api.Services.Categories;
+using Azul.Api.Services.Offerings;
+using Azul.Api.Services.Providers;
 using Azul.Api.Common.Validation;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +27,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IOfferingService, OfferingService>();
-builder.Services.AddScoped<IProviderService, ProviderService>();
+builder.Services.AddScoped<IProviderReadService, ProviderReadService>();
+builder.Services.AddScoped<IProviderWriteService, ProviderWriteService>();
 builder.Services.AddScoped<ICatalogService, CatalogService>();
 builder.Services.AddSingleton<IPhoneHasher, PhoneHasher>();
 
