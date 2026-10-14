@@ -2,7 +2,7 @@ using Azul.Api.Common.Pagination;
 using Azul.Api.Entities;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Azul.Api.DTOs;
+namespace Azul.Api.DTOs.Search;
 
 // GET /api/search?text=&category=&category=&providerType=&offering=&sortBy=&page=&pageSize=
 public class SearchQuery : PageQuery

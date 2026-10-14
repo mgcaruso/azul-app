@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Azul.Api.Common.Exceptions;
 using Azul.Api.Data;
-using Azul.Api.DTOs;
+using Azul.Api.DTOs.Categories;
 using Azul.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 

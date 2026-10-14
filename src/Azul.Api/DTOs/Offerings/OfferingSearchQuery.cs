@@ -1,6 +1,6 @@
 using Azul.Api.Common.Pagination;
 
-namespace Azul.Api.DTOs;
+namespace Azul.Api.DTOs.Offerings;
 
 public class OfferingSearchQuery : PageQuery
 {

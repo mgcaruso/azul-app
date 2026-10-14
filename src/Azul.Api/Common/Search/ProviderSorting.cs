@@ -1,4 +1,4 @@
-﻿using Azul.Api.DTOs;
+﻿using Azul.Api.DTOs.Search;
 using Azul.Api.Entities;
 
 namespace Azul.Api.Common.Search;

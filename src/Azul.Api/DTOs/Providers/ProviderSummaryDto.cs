@@ -1,6 +1,7 @@
 using Azul.Api.Entities;
+using Azul.Api.DTOs.Offerings;
 
-namespace Azul.Api.DTOs;
+namespace Azul.Api.DTOs.Providers;
 
 // Lo que muestra la card: foto, nombre, rubro, dos servicios, descripción y botones de contacto.
 public class ProviderSummaryDto

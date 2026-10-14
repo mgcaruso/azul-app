@@ -1,4 +1,4 @@
-using Azul.Api.DTOs;
+using Azul.Api.DTOs.Search;
 using FluentValidation;
 
 namespace Azul.Api.Validators;

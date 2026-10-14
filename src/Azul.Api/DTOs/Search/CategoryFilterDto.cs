@@ -1,4 +1,4 @@
-namespace Azul.Api.DTOs;
+namespace Azul.Api.DTOs.Search;
 
 public class CategoryFilterDto
 {

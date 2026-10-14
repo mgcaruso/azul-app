@@ -1,6 +1,7 @@
 ﻿using Azul.Api.Entities;
+using Azul.Api.DTOs.Offerings;
 
-namespace Azul.Api.DTOs;
+namespace Azul.Api.DTOs.Providers;
 
 public class ProviderDto
 {

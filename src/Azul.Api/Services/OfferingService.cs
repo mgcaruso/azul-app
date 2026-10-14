@@ -3,7 +3,7 @@ using Azul.Api.Common.Exceptions;
 using Azul.Api.Common.Pagination;
 using Azul.Api.Common.Search;
 using Azul.Api.Data;
-using Azul.Api.DTOs;
+using Azul.Api.DTOs.Offerings;
 using Azul.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 

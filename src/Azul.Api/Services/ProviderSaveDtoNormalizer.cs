@@ -1,5 +1,5 @@
 using System.Globalization;
-using Azul.Api.DTOs;
+using Azul.Api.DTOs.Providers;
 
 namespace Azul.Api.Services;
 

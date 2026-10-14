@@ -1,4 +1,4 @@
-﻿using Azul.Api.DTOs;
+﻿using Azul.Api.DTOs.Categories;
 using Azul.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,4 +1,7 @@
-﻿namespace Azul.Api.DTOs;
+﻿using Azul.Api.DTOs.Offerings;
+using Azul.Api.DTOs.Providers;
+
+namespace Azul.Api.DTOs.Catalog;
 
 public class CatalogInitializeDto
 {

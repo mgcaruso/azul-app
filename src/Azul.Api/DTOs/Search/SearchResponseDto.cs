@@ -1,4 +1,4 @@
-namespace Azul.Api.DTOs;
+namespace Azul.Api.DTOs.Search;
 
 // Respuesta de GET /api/search: la página de proveedores y los filtros que se pueden sumar.
 public class SearchResponseDto

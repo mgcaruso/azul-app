@@ -1,4 +1,4 @@
-﻿using Azul.Api.DTOs;
+﻿using Azul.Api.DTOs.Categories;
 
 namespace Azul.Api.Services;
 

@@ -1,5 +1,5 @@
 ﻿using Azul.Api.Common.Pagination;
-using Azul.Api.DTOs;
+using Azul.Api.DTOs.Offerings;
 
 namespace Azul.Api.Services;
 

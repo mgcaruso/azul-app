@@ -1,4 +1,4 @@
-﻿namespace Azul.Api.DTOs;
+﻿namespace Azul.Api.DTOs.Offerings;
 
 public class OfferingSummaryDto
 {
