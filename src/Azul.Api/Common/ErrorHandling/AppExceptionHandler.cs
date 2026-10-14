@@ -19,8 +19,6 @@ public class AppExceptionHandler(
             NotFoundException => StatusCodes.Status404NotFound,
             ConflictException => StatusCodes.Status409Conflict,
             ValidationFailedException => StatusCodes.Status400BadRequest,
-            BusinessRuleException => StatusCodes.Status422UnprocessableEntity,
-            ForbiddenException => StatusCodes.Status403Forbidden,
             _ => StatusCodes.Status500InternalServerError
         };
 
