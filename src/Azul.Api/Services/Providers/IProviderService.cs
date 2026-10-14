@@ -2,7 +2,7 @@
 using Azul.Api.DTOs.Providers;
 using Azul.Api.DTOs.Search;
 
-namespace Azul.Api.Services;
+namespace Azul.Api.Services.Providers;
 
 public interface IProviderService
 {

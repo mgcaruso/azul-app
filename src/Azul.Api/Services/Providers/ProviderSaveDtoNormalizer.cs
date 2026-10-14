@@ -1,7 +1,7 @@
 using System.Globalization;
 using Azul.Api.DTOs.Providers;
 
-namespace Azul.Api.Services;
+namespace Azul.Api.Services.Providers;
 
 // Deja el request en la forma que espera el validador y que se guarda en la base.
 // Es idempotente: el validador lo corre antes de validar y el service otra vez antes de guardar.

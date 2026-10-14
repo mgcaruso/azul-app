@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using Azul.Api.DTOs.Providers;
 using Azul.Api.Entities;
-using Azul.Api.Services;
+using Azul.Api.Services.Providers;
 using FluentValidation;
 using FluentValidation.Results;
 

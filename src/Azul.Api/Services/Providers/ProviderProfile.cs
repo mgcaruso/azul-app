@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Azul.Api.Entities;
 
-namespace Azul.Api.Common.Search;
+namespace Azul.Api.Services.Providers;
 
 // Qué es un perfil completo (foto, descripción e Instagram). Son Expression, y no métodos comunes,
 // para que EF las traduzca a SQL dentro de un Where o un OrderBy.

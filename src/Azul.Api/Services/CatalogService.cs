@@ -1,6 +1,7 @@
 using Azul.Api.Common.Pagination;
 using Azul.Api.DTOs.Catalog;
 using Azul.Api.DTOs.Search;
+using Azul.Api.Services.Providers;
 
 namespace Azul.Api.Services;
 

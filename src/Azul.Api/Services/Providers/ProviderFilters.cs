@@ -1,6 +1,7 @@
-﻿using Azul.Api.Entities;
+﻿using Azul.Api.Common.Search;
+using Azul.Api.Entities;
 
-namespace Azul.Api.Common.Search;
+namespace Azul.Api.Services.Providers;
 
 public static class ProviderFilters
 {

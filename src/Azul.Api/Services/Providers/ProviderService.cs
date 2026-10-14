@@ -1,6 +1,5 @@
 using Azul.Api.Common.Exceptions;
 using Azul.Api.Common.Pagination;
-using Azul.Api.Common.Search;
 using Azul.Api.Data;
 using Azul.Api.DTOs.Providers;
 using Azul.Api.DTOs.Search;
@@ -8,7 +7,7 @@ using Azul.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace Azul.Api.Services;
+namespace Azul.Api.Services.Providers;
 
 public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, IConfiguration configuration)
     : IProviderService

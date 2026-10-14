@@ -1,7 +1,7 @@
 ﻿using Azul.Api.DTOs.Search;
 using Azul.Api.Entities;
 
-namespace Azul.Api.Common.Search;
+namespace Azul.Api.Services.Providers;
 
 public static class ProviderSorting
 {

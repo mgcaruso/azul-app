@@ -3,7 +3,7 @@ using Azul.Api.DTOs.Offerings;
 using Azul.Api.DTOs.Providers;
 using Azul.Api.Entities;
 
-namespace Azul.Api.Services;
+namespace Azul.Api.Services.Providers;
 
 // Cómo se convierte un Provider en cada DTO, para usar dentro de un Select de EF.
 // Son métodos que devuelven una Expression (y no métodos que reciben un Provider) para que EF
