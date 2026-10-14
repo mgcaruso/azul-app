@@ -1,9 +1,7 @@
-using System.Linq.Expressions;
 using Azul.Api.Common.Exceptions;
 using Azul.Api.Common.Pagination;
 using Azul.Api.Common.Search;
 using Azul.Api.Data;
-using Azul.Api.DTOs.Offerings;
 using Azul.Api.DTOs.Providers;
 using Azul.Api.DTOs.Search;
 using Azul.Api.Entities;
@@ -21,46 +19,6 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
     private readonly string photoBaseUrl = configuration["Photos:BaseUrl"]
         ?? throw new InvalidOperationException("Falta la configuración Photos:BaseUrl.");
 
-    private Expression<Func<Provider, ProviderSummaryDto>> ToProviderSummaryDto =>
-        p => new ProviderSummaryDto
-        {
-            Id = p.Id,
-            DisplayName = p.DisplayName,
-            Type = p.Type,
-            PhotoUrl = p.PhotoKey == null ? null : photoBaseUrl + p.PhotoKey,
-            Description = p.Description,
-            PhoneNumber = p.PhoneNumber,
-            InstagramUsername = p.InstagramUsername,
-            CategoryName = p.Offerings
-                .OrderBy(po => po.Offering.Name)
-                .Select(po => po.Offering.Category.Name)
-                .FirstOrDefault(),
-            TopOfferings = p.Offerings
-                .OrderBy(po => po.Offering.Name)
-                .Take(2)
-                .Select(po => new OfferingSummaryDto { Id = po.Offering.Id, Name = po.Offering.Name })
-                .ToList(),
-            OfferingCount = p.Offerings.Count
-        };
-
-    private Expression<Func<Provider, ProviderDto>> ToProviderDto =>
-        p => new ProviderDto
-        {
-            Id = p.Id,
-            DisplayName = p.DisplayName,
-            Type = p.Type,
-            Description = p.Description,
-            PhotoUrl = p.PhotoKey == null ? null : photoBaseUrl + p.PhotoKey,
-            PhoneNumber = p.PhoneNumber,
-            InstagramUsername = p.InstagramUsername,
-            Address = p.Address,
-            Hours = p.Hours,
-            Offerings = p.Offerings
-                .OrderBy(po => po.Offering.Name)
-                .Select(po => new OfferingSummaryDto { Id = po.Offering.Id, Name = po.Offering.Name })
-                .ToList()
-        };
-
     // GET /api/providers?type=&page=&pageSize=
     public async Task<PagedResult<ProviderSummaryDto>> GetAllAsync(ProviderSearchQuery query)
     {
@@ -68,7 +26,7 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
             .WhereType(query.Type)
             .OrderBy(p => p.DisplayName)
             .ThenBy(p => p.Id)
-            .Select(ToProviderSummaryDto)
+            .Select(ProviderProjections.ToSummaryDto(photoBaseUrl))
             .PaginateAsync(query);
     }
 
@@ -151,7 +109,7 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
     {
         return await dbContext.Providers
                    .Where(p => p.Id == id && p.Status == ProviderStatus.Published)
-                   .Select(ToProviderDto)
+                   .Select(ProviderProjections.ToDto(photoBaseUrl))
                    .FirstOrDefaultAsync()
                ?? throw new NotFoundException("provider", id);
     }
@@ -161,7 +119,7 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
     {
         return await dbContext.Providers
                    .Where(p => p.Id == id)
-                   .Select(ToProviderDto)
+                   .Select(ProviderProjections.ToDto(photoBaseUrl))
                    .FirstOrDefaultAsync()
                ?? throw new NotFoundException("provider", id);
     }
@@ -181,7 +139,7 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
         return await providersDb
             .OrderBy(p => p.DisplayName)
             .ThenBy(p => p.Id)
-            .Select(ToProviderSummaryDto)
+            .Select(ProviderProjections.ToSummaryDto(photoBaseUrl))
             .PaginateAsync(pageQuery);
     }
 
@@ -221,7 +179,7 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
         // El orden va antes del Select.
         var page = await filteredProviders
             .OrderBySort(query.SortBy)
-            .Select(ToProviderSummaryDto)
+            .Select(ProviderProjections.ToSummaryDto(photoBaseUrl))
             .PaginateAsync(query);
 
         return new ProviderSearchPageDto
@@ -245,7 +203,7 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
             .OrderByDescending(p => p.FirstPublishedAt)
             .ThenByDescending(p => p.Id)
             .Take(6)
-            .Select(ToProviderSummaryDto)
+            .Select(ProviderProjections.ToSummaryDto(photoBaseUrl))
             .ToListAsync();
         return providersDb;
     }
@@ -257,7 +215,7 @@ public class ProviderService(AppDbContext dbContext, IPhoneHasher phoneHasher, I
             .OrderBy(p => p.DisplayName)
             .ThenBy(p => p.Id)
             .Take(6)
-            .Select(ToProviderSummaryDto)
+            .Select(ProviderProjections.ToSummaryDto(photoBaseUrl))
             .ToListAsync();
         return providersDb;
     }
