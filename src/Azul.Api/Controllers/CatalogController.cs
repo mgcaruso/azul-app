@@ -1,6 +1,6 @@
 using Azul.Api.DTOs.Catalog;
 using Azul.Api.DTOs.Search;
-using Azul.Api.Services;
+using Azul.Api.Services.Catalog;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Azul.Api.Controllers;

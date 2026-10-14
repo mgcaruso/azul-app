@@ -7,7 +7,7 @@ using Azul.Api.DTOs.Offerings;
 using Azul.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Azul.Api.Services;
+namespace Azul.Api.Services.Offerings;
 
 public class OfferingService(AppDbContext dbContext) : IOfferingService
 {

@@ -1,6 +1,6 @@
 ﻿using Azul.Api.DTOs.Categories;
 
-namespace Azul.Api.Services;
+namespace Azul.Api.Services.Categories;
 
 public interface ICategoryService
 {

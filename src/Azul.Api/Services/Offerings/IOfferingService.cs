@@ -1,7 +1,7 @@
 ﻿using Azul.Api.Common.Pagination;
 using Azul.Api.DTOs.Offerings;
 
-namespace Azul.Api.Services;
+namespace Azul.Api.Services.Offerings;
 
 public interface IOfferingService
 {

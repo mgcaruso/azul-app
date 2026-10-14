@@ -1,5 +1,5 @@
 ﻿using Azul.Api.DTOs.Categories;
-using Azul.Api.Services;
+using Azul.Api.Services.Categories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Azul.Api.Controllers;

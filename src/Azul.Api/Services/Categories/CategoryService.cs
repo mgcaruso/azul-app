@@ -5,7 +5,7 @@ using Azul.Api.DTOs.Categories;
 using Azul.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Azul.Api.Services;
+namespace Azul.Api.Services.Categories;
 
 public class CategoryService(AppDbContext dbContext) : ICategoryService
 {

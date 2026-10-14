@@ -1,9 +1,10 @@
 using Azul.Api.Common.Pagination;
 using Azul.Api.DTOs.Catalog;
 using Azul.Api.DTOs.Search;
+using Azul.Api.Services.Offerings;
 using Azul.Api.Services.Providers;
 
-namespace Azul.Api.Services;
+namespace Azul.Api.Services.Catalog;
 
 // Arma respuestas que juntan varias entidades usando los otros services (no repite consultas).
 public class CatalogService(IOfferingService offeringService, IProviderReadService providerReadService) : ICatalogService
