@@ -24,7 +24,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IOfferingService, OfferingService>();
-builder.Services.AddScoped<IProviderService, ProviderService>();
+builder.Services.AddScoped<IProviderReadService, ProviderReadService>();
+builder.Services.AddScoped<IProviderWriteService, ProviderWriteService>();
 builder.Services.AddScoped<ICatalogService, CatalogService>();
 builder.Services.AddSingleton<IPhoneHasher, PhoneHasher>();
 
