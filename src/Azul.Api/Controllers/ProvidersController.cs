@@ -7,8 +7,7 @@ namespace Azul.Api.Controllers;
 
 [ApiController]
 [Route("api/providers")]
-public class ProvidersController(IProviderReadService providerReadService, IProviderWriteService providerWriteService)
-    : ControllerBase
+public class ProvidersController(IProviderReadService providerReadService) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType<PagedResult<ProviderSummaryDto>>(StatusCodes.Status200OK)]
@@ -34,34 +33,6 @@ public class ProvidersController(IProviderReadService providerReadService, IProv
         int offeringId, [FromQuery] PageQuery pageQuery)
     {
         return Ok(await providerReadService.GetByOfferingAsync(offeringId, pageQuery));
-    }
-
-    [HttpPost]
-    [ProducesResponseType<ProviderDto>(StatusCodes.Status201Created)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ProviderDto>> Create([FromBody] ProviderSaveDto dto)
-    {
-        var created = await providerWriteService.CreateAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-    }
-
-    [HttpPut("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> Update(int id, [FromBody] ProviderSaveDto dto)
-    {
-        await providerWriteService.UpdateAsync(id, dto);
-        return NoContent();
-    }
-
-    [HttpDelete("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> Delete(int id)
-    {
-        await providerWriteService.DeleteAsync(id);
-        return NoContent();
     }
 
     [HttpGet("featured")]
