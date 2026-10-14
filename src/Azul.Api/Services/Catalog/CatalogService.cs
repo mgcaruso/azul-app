@@ -1,4 +1,3 @@
-using Azul.Api.Common.Pagination;
 using Azul.Api.DTOs.Catalog;
 using Azul.Api.DTOs.Search;
 using Azul.Api.Services.Offerings;
@@ -9,8 +8,6 @@ namespace Azul.Api.Services.Catalog;
 // Arma respuestas que juntan varias entidades usando los otros services (no repite consultas).
 public class CatalogService(IOfferingService offeringService, IProviderReadService providerReadService) : ICatalogService
 {
-    private const int OfferingsLimit = 12;
-    private const int ProvidersLimit = 6;
     private const int RandomOfferingsLimit = 8;
 
     // GET /api/catalog/initialize: últimos proveedores + servicios.
