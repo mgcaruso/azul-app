@@ -6,7 +6,7 @@ namespace Azul.Api.Controllers;
 
 [ApiController]
 [Route("api/admin/offerings")]
-public class AdminOfferingsController(IOfferingService offeringService) : ControllerBase
+public class AdminOfferingsController(IOfferingService offeringService) : AdminControllerBase
 {
     [HttpPost]
     [ProducesResponseType<OfferingDto>(StatusCodes.Status201Created)]

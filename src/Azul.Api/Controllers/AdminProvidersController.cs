@@ -6,7 +6,7 @@ namespace Azul.Api.Controllers;
 
 [ApiController]
 [Route("api/admin/providers")]
-public class AdminProvidersController(IProviderWriteService providerWriteService) : ControllerBase
+public class AdminProvidersController(IProviderWriteService providerWriteService) : AdminControllerBase
 {
     [HttpPost]
     [ProducesResponseType<ProviderDto>(StatusCodes.Status201Created)]

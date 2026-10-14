@@ -6,7 +6,7 @@ namespace Azul.Api.Controllers;
 
 [ApiController]
 [Route("api/admin/categories")]
-public class AdminCategoriesController(ICategoryService categoryService) : ControllerBase
+public class AdminCategoriesController(ICategoryService categoryService) : AdminControllerBase
 {
     [HttpPost]
     [ProducesResponseType<CategoryDto>(StatusCodes.Status201Created)]
