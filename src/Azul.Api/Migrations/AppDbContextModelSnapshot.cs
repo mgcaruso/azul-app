@@ -39,7 +39,7 @@ namespace Azul.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Azul.Api.Entities.Offering", b =>
@@ -62,7 +62,7 @@ namespace Azul.Api.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Offerings");
+                    b.ToTable("Offerings", (string)null);
                 });
 
             modelBuilder.Entity("Azul.Api.Entities.Provider", b =>
@@ -144,7 +144,7 @@ namespace Azul.Api.Migrations
 
                     b.HasIndex("PhoneNumber");
 
-                    b.ToTable("Providers", t =>
+                    b.ToTable("Providers", null, t =>
                         {
                             t.HasCheckConstraint("CK_Providers_Address_RequiredBusiness", "\"Type\" <> 'Business' OR \"Address\" IS NOT NULL");
 
@@ -194,7 +194,7 @@ namespace Azul.Api.Migrations
                         .IsUnique()
                         .HasFilter("\"RevokedAt\" IS NULL");
 
-                    b.ToTable("ProviderConsents", t =>
+                    b.ToTable("ProviderConsents", null, t =>
                         {
                             t.HasCheckConstraint("CK_ProviderConsents_RevokedAt", "\"RevokedAt\" IS NULL OR \"RevokedAt\" >= \"AcceptedAt\"");
                         });
@@ -215,7 +215,7 @@ namespace Azul.Api.Migrations
 
                     b.HasIndex("OfferingId");
 
-                    b.ToTable("ProviderOfferings");
+                    b.ToTable("ProviderOfferings", (string)null);
                 });
 
             modelBuilder.Entity("Azul.Api.Entities.Offering", b =>
