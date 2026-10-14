@@ -1,6 +1,6 @@
 using Azul.Api.Common.Pagination;
+using Azul.Api.DTOs.Catalog;
 using Azul.Api.DTOs.Providers;
-using Azul.Api.DTOs.Search;
 
 namespace Azul.Api.Services.Providers;
 
@@ -11,5 +11,5 @@ public interface IProviderReadService
     Task<PagedResult<ProviderSummaryDto>> GetByOfferingAsync(int offeringId, PageQuery pageQuery);
     Task<List<ProviderSummaryDto>> GetLatestAsync();
     Task<List<ProviderSummaryDto>> GetFeaturedAsync();
-    Task<SearchResponseDto> GetProvidersCatalogAsync(SearchQuery query);
+    Task<ProviderSearchPageDto> CatalogSearchAsync(CatalogSearchQuery query);
 }

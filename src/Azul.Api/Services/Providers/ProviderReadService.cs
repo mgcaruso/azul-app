@@ -1,8 +1,8 @@
 using Azul.Api.Common.Exceptions;
 using Azul.Api.Common.Pagination;
-using Azul.Api.Data;
+using Azul.Api.DTOs.Catalog;
 using Azul.Api.DTOs.Providers;
-using Azul.Api.DTOs.Search;
+using Azul.Api.Data;
 using Azul.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,22 +56,9 @@ public class ProviderReadService(AppDbContext dbContext, IConfiguration configur
             .PaginateAsync(pageQuery);
     }
 
-    // GET /api/search: página de proveedores + filtros (categorías y servicios).
-    // Los filtros vuelven vacíos por ahora.
-    public async Task<SearchResponseDto> GetProvidersCatalogAsync(SearchQuery query)
-    {
-        var providers = await GetProviderPageAsync(query);
-
-        return new SearchResponseDto
-        {
-            Providers = providers,
-            Filters = new SearchFiltersDto()
-        };
-    }
-
     // Publicados + filtros de la request. Cada filtro que viene suma un Where ("y").
     // Para texto: SearchText.Matches(columna, LikePattern.Contains(texto)).
-    private IQueryable<Provider> GetPublishedProvidersFiltered(SearchQuery query)
+    private IQueryable<Provider> GetPublishedProvidersFiltered(CatalogSearchQuery query)
     {
         return GetPublishedProviders()
             .WhereMatchesText(query.Text)
@@ -80,9 +67,10 @@ public class ProviderReadService(AppDbContext dbContext, IConfiguration configur
     }
 
   
+    // GET /api/search: la página de proveedores.
     // Total = todos los que cumplen los filtros de la request; Items ordenados según SortBy y paginados;
     // HasMore = Page * PageSize < Total.
-    private async Task<ProviderSearchPageDto> GetProviderPageAsync(SearchQuery query)
+    public async Task<ProviderSearchPageDto> CatalogSearchAsync(CatalogSearchQuery query)
     {
         var filteredProviders = GetPublishedProvidersFiltered(query);
 

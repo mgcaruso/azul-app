@@ -1,5 +1,4 @@
 using Azul.Api.DTOs.Catalog;
-using Azul.Api.DTOs.Search;
 using Azul.Api.Services.Catalog;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,10 +20,10 @@ public class CatalogController(ICatalogService catalogService) : ControllerBase
 
     // GET /api/search?text=torta&category=3&category=4&providerType=Business&sortBy=Featured&page=1&pageSize=12
     [HttpGet("/api/search")]
-    [ProducesResponseType<SearchResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<CatalogSearchResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<SearchResponseDto>> Search([FromQuery] SearchQuery query)
+    public async Task<ActionResult<CatalogSearchResponseDto>> CatalogSearch([FromQuery] CatalogSearchQuery query)
     {
-        return Ok(await catalogService.GetProvidersCatalogAsync(query));
+        return Ok(await catalogService.CatalogSearchAsync(query));
     }
 }

@@ -1,4 +1,4 @@
-namespace Azul.Api.DTOs.Search;
+namespace Azul.Api.DTOs.Providers;
 
 public enum ProviderSort
 {

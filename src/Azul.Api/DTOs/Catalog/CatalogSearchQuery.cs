@@ -1,11 +1,12 @@
 using Azul.Api.Common.Pagination;
+using Azul.Api.DTOs.Providers;
 using Azul.Api.Entities;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Azul.Api.DTOs.Search;
+namespace Azul.Api.DTOs.Catalog;
 
 // GET /api/search?text=&category=&category=&providerType=&offering=&sortBy=&page=&pageSize=
-public class SearchQuery : PageQuery
+public class CatalogSearchQuery : PageQuery
 {
     public string Text { get; set; } = string.Empty;
 

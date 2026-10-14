@@ -1,11 +1,11 @@
-using Azul.Api.DTOs.Search;
 using FluentValidation;
+using Azul.Api.DTOs.Catalog;
 
 namespace Azul.Api.Validators;
 
-public class SearchQueryValidator : AbstractValidator<SearchQuery>
+public class CatalogSearchQueryValidator : AbstractValidator<CatalogSearchQuery>
 {
-    public SearchQueryValidator()
+    public CatalogSearchQueryValidator()
     {
         Include(new PageQueryValidator());
 

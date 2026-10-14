@@ -1,5 +1,5 @@
 using Azul.Api.DTOs.Catalog;
-using Azul.Api.DTOs.Search;
+using Azul.Api.DTOs.Offerings;
 using Azul.Api.Services.Offerings;
 using Azul.Api.Services.Providers;
 
@@ -9,6 +9,7 @@ namespace Azul.Api.Services.Catalog;
 public class CatalogService(IOfferingService offeringService, IProviderReadService providerReadService) : ICatalogService
 {
     private const int RandomOfferingsLimit = 8;
+    private const int MatchingOfferingsLimit = 10;
 
     // GET /api/catalog/initialize: últimos proveedores + servicios.
     // TODO: cachear esta respuesta (cambia poco y la pide cada visita a la Home). 
@@ -20,9 +21,23 @@ public class CatalogService(IOfferingService offeringService, IProviderReadServi
         return new CatalogInitializeDto { LatestProviders = latestProviders, Offerings = offerings };
     }
 
-    // GET /api/search. La lógica está en ProviderReadService, que tiene el DbContext y la proyección de la card.
-    public async Task<SearchResponseDto> GetProvidersCatalogAsync(SearchQuery query)
+    // GET /api/search: la página de proveedores y, si hay texto, los servicios cuyo nombre coincide.
+    public async Task<CatalogSearchResponseDto> CatalogSearchAsync(CatalogSearchQuery query)
     {
-        return await providerReadService.GetProvidersCatalogAsync(query);
+        var providers = await providerReadService.CatalogSearchAsync(query);
+
+        // Sin texto no se sugieren servicios: SearchAsync de servicios devolvería todos.
+        if (string.IsNullOrWhiteSpace(query.Text))
+        {
+            return new CatalogSearchResponseDto { Providers = providers };
+        }
+
+        var offerings = await offeringService.SearchAsync(new OfferingSearchQuery
+        {
+            Text = query.Text,
+            PageSize = MatchingOfferingsLimit
+        });
+
+        return new CatalogSearchResponseDto { Providers = providers, Offerings = offerings.Items };
     }
 }

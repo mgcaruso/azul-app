@@ -1,4 +1,4 @@
-﻿using Azul.Api.DTOs.Search;
+﻿using Azul.Api.DTOs.Providers;
 using Azul.Api.Entities;
 
 namespace Azul.Api.Services.Providers;
