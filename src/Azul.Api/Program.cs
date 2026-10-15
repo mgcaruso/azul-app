@@ -11,6 +11,7 @@ using Azul.Api.Common.Validation;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+using Azul.Api.Common.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,10 @@ if (string.IsNullOrWhiteSpace(builder.Configuration["Photos:BaseUrl"]))
     throw new InvalidOperationException("Falta la configuración Photos:BaseUrl.");
 }
 
+if (string.IsNullOrWhiteSpace(builder.Configuration["Admin:ApiKey"]))
+{
+    throw new InvalidOperationException("Falta la configuración Admin:ApiKey.");
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
@@ -31,6 +36,7 @@ builder.Services.AddScoped<IProviderReadService, ProviderReadService>();
 builder.Services.AddScoped<IProviderWriteService, ProviderWriteService>();
 builder.Services.AddScoped<ICatalogService, CatalogService>();
 builder.Services.AddSingleton<IPhoneHasher, PhoneHasher>();
+builder.Services.AddSingleton<AdminKeyFilter>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
@@ -69,10 +75,38 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 builder.Services.AddOpenApi(options =>
+{
+    // Declara la clave de admin (header X-Admin-Key) para que Swagger muestre el botón Authorize.
+    options.AddDocumentTransformer((document, _, _) =>
+    {
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes["AdminKey"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.ApiKey,
+            Name = "X-Admin-Key",
+            In = ParameterLocation.Header,
+            Description = "Clave de admin (la misma de user-secrets: Admin:ApiKey).",
+        };
+        return Task.CompletedTask;
+    });
+
+    // Solo las rutas /api/admin piden la clave.
+    options.AddOperationTransformer((operation, context, _) =>
+    {
+        if (context.Description.RelativePath?.StartsWith("api/admin") == true)
+        {
+            operation.Security ??= [];
+            operation.Security.Add(new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("AdminKey", context.Document)] = []
+            });
+        }
+        return Task.CompletedTask;
+    });
+
     options.AddSchemaTransformer((schema, context, _) =>
     {
-        // Marca como obligatorias las propiedades que no aceptan null (id, type, offerings...),
-        // para que en el front no lleguen todas como opcionales.
         if (schema.Properties is null)
         {
             return Task.CompletedTask;
@@ -94,7 +128,8 @@ builder.Services.AddOpenApi(options =>
             }
         }
         return Task.CompletedTask;
-    }));
+    });
+});
 
 var app = builder.Build();
 
@@ -114,6 +149,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/openapi/v1.json", "Azul API v1");
+        // Recuerda la clave en el navegador para no pegarla en cada recarga.
+        options.EnablePersistAuthorization();
     });
 }
 
