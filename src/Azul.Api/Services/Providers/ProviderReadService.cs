@@ -26,6 +26,29 @@ public class ProviderReadService(AppDbContext dbContext, IConfiguration configur
             .PaginateAsync(query);
     }
 
+    // GET /api/admin/providers?status=&text=&type=&page=&pageSize=: todos los estados.
+    public async Task<PagedResult<AdminProviderListItemDto>> GetAdminListAsync(AdminProviderSearchQuery query)
+    {
+        return await dbContext.Providers
+            .WhereType(query.Type)
+            .WhereInStatuses(query.Statuses)
+            .WhereMatchesText(query.Text)
+            .OrderByDescending(p => p.CreatedAt)
+            .ThenBy(p => p.Id)
+            .Select(ProviderProjections.ToAdminListItemDto())
+            .PaginateAsync(query);
+    }
+
+    // GET /api/admin/providers/{id}: cualquier estado.
+    public async Task<AdminProviderDto> GetAdminByIdAsync(int id)
+    {
+        return await dbContext.Providers
+                   .Where(p => p.Id == id)
+                   .Select(ProviderProjections.ToAdminDto(photoBaseUrl))
+                   .FirstOrDefaultAsync()
+               ?? throw new NotFoundException("provider", id);
+    }
+
     // GET /api/providers/{id}: solo proveedores publicados.
     public async Task<ProviderDto> GetByIdAsync(int id)
     {
@@ -46,10 +69,10 @@ public class ProviderReadService(AppDbContext dbContext, IConfiguration configur
             throw new NotFoundException("offering", offeringId);
         }
 
-        var providersDb = GetPublishedProviders()
+        var providersQuery = GetPublishedProviders()
             .Where(p => p.Offerings.Any(po => po.OfferingId == offeringId));
 
-        return await providersDb
+        return await providersQuery
             .OrderBy(p => p.DisplayName)
             .ThenBy(p => p.Id)
             .Select(ProviderProjections.ToSummaryDto(photoBaseUrl))

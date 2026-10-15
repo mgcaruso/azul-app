@@ -1,4 +1,5 @@
-﻿using Azul.Api.DTOs.Providers;
+﻿using Azul.Api.Common.Pagination;
+using Azul.Api.DTOs.Providers;
 using Azul.Api.Services.Providers;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,7 +7,9 @@ namespace Azul.Api.Controllers;
 
 [ApiController]
 [Route("api/admin/providers")]
-public class AdminProvidersController(IProviderWriteService providerWriteService) : AdminControllerBase
+public class AdminProvidersController(
+    IProviderReadService providerReadService,
+    IProviderWriteService providerWriteService) : AdminControllerBase
 {
     [HttpPut("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -55,5 +58,21 @@ public class AdminProvidersController(IProviderWriteService providerWriteService
     {
         await providerWriteService.RejectAsync(id);
         return NoContent();
+    }
+
+    [HttpGet("{id:int}")]
+    [ProducesResponseType<AdminProviderDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AdminProviderDto>> GetById(int id)
+    {
+        return await providerReadService.GetAdminByIdAsync(id);
+    }
+
+    [HttpGet]
+    [ProducesResponseType<PagedResult<AdminProviderListItemDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResult<AdminProviderListItemDto>>> GetAll(
+        [FromQuery] AdminProviderSearchQuery query)
+    {
+        return await providerReadService.GetAdminListAsync(query);
     }
 }

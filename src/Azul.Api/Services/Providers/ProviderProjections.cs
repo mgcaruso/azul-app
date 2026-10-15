@@ -50,4 +50,36 @@ public static class ProviderProjections
                 .Select(po => new OfferingSummaryDto { Id = po.Offering.Id, Name = po.Offering.Name })
                 .ToList()
         };
+
+    public static Expression<Func<Provider, AdminProviderDto>> ToAdminDto(string photoBaseUrl) =>
+        p => new AdminProviderDto
+        {
+            Id = p.Id,
+            DisplayName = p.DisplayName,
+            Type = p.Type,
+            Description = p.Description,
+            PhotoUrl = p.PhotoKey == null ? null : photoBaseUrl + p.PhotoKey,
+            PhoneNumber = p.PhoneNumber,
+            InstagramUsername = p.InstagramUsername,
+            Address = p.Address,
+            Hours = p.Hours,
+            Offerings = p.Offerings
+                .OrderBy(po => po.Offering.Name)
+                .Select(po => new OfferingSummaryDto { Id = po.Offering.Id, Name = po.Offering.Name })
+                .ToList(),
+            Status = p.Status,
+            CreatedAt = p.CreatedAt,
+            FirstPublishedAt = p.FirstPublishedAt
+        };
+
+    public static Expression<Func<Provider, AdminProviderListItemDto>> ToAdminListItemDto() =>
+        p => new AdminProviderListItemDto
+        {
+            Id = p.Id,
+            DisplayName = p.DisplayName,
+            Type = p.Type,
+            PhoneNumber = p.PhoneNumber,
+            Status = p.Status,
+            CreatedAt = p.CreatedAt
+        };
 }
