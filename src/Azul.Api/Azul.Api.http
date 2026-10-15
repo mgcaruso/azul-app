@@ -224,8 +224,7 @@ Accept: application/json
 ### ===== Proveedores =====
 
 ### Crear un proveedor con dos servicios -> 201 con header Location y sus servicios
-POST {{baseUrl}}/api/admin/providers
-X-Admin-Key: {{adminKey}}
+POST {{baseUrl}}/api/providers
 Content-Type: application/json
 
 {
@@ -235,8 +234,7 @@ Content-Type: application/json
 }
 
 ### Servicio repetido en la lista -> 201 igual, guardado una sola vez
-POST {{baseUrl}}/api/admin/providers
-X-Admin-Key: {{adminKey}}
+POST {{baseUrl}}/api/providers
 Content-Type: application/json
 
 {
@@ -246,8 +244,7 @@ Content-Type: application/json
 }
 
 ### Un servicio que no existe -> 400 con errors.offeringIds
-POST {{baseUrl}}/api/admin/providers
-X-Admin-Key: {{adminKey}}
+POST {{baseUrl}}/api/providers
 Content-Type: application/json
 
 {
@@ -257,8 +254,7 @@ Content-Type: application/json
 }
 
 ### Lista de servicios vacía -> 400 (validación del DTO)
-POST {{baseUrl}}/api/admin/providers
-X-Admin-Key: {{adminKey}}
+POST {{baseUrl}}/api/providers
 Content-Type: application/json
 
 {
@@ -268,8 +264,7 @@ Content-Type: application/json
 }
 
 ### Sin nombre -> 400 (validación del DTO)
-POST {{baseUrl}}/api/admin/providers
-X-Admin-Key: {{adminKey}}
+POST {{baseUrl}}/api/providers
 Content-Type: application/json
 
 {
@@ -278,8 +273,7 @@ Content-Type: application/json
 }
 
 ### Sin tipo -> 400 (validación del DTO)
-POST {{baseUrl}}/api/admin/providers
-X-Admin-Key: {{adminKey}}
+POST {{baseUrl}}/api/providers
 Content-Type: application/json
 
 {
@@ -288,8 +282,7 @@ Content-Type: application/json
 }
 
 ### Tipo que no existe -> 400 (el JSON no se puede convertir al enum)
-POST {{baseUrl}}/api/admin/providers
-X-Admin-Key: {{adminKey}}
+POST {{baseUrl}}/api/providers
 Content-Type: application/json
 
 {

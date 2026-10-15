@@ -7,7 +7,9 @@ namespace Azul.Api.Controllers;
 
 [ApiController]
 [Route("api/providers")]
-public class ProvidersController(IProviderReadService providerReadService) : ControllerBase
+public class ProvidersController(
+    IProviderReadService providerReadService,
+    IProviderWriteService providerWriteService) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType<PagedResult<ProviderSummaryDto>>(StatusCodes.Status200OK)]
@@ -33,6 +35,16 @@ public class ProvidersController(IProviderReadService providerReadService) : Con
         int offeringId, [FromQuery] PageQuery pageQuery)
     {
         return Ok(await providerReadService.GetByOfferingAsync(offeringId, pageQuery));
+    }
+
+    // Alta pública ("Sumá tu negocio"): siempre queda en estado Pending, el admin la revisa y la publica.
+    [HttpPost]
+    [ProducesResponseType<ProviderDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ProviderDto>> Create([FromBody] ProviderSaveDto dto)
+    {
+        var created = await providerWriteService.CreateAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpGet("featured")]

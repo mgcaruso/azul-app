@@ -8,15 +8,6 @@ namespace Azul.Api.Controllers;
 [Route("api/admin/providers")]
 public class AdminProvidersController(IProviderWriteService providerWriteService) : AdminControllerBase
 {
-    [HttpPost]
-    [ProducesResponseType<ProviderDto>(StatusCodes.Status201Created)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ProviderDto>> Create([FromBody] ProviderSaveDto dto)
-    {
-        var created = await providerWriteService.CreateAsync(dto);
-        return CreatedAtAction(nameof(ProvidersController.GetById), "Providers", new { id = created.Id }, created);
-    }
-
     [HttpPut("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
