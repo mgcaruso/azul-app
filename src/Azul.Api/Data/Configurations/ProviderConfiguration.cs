@@ -41,7 +41,7 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             t.HasCheckConstraint(
                 "CK_Providers_Status",
                 """
-                "Status" IN ('Pending', 'Published', 'Suspended')
+                "Status" IN ('Pending', 'Published', 'Suspended', 'Rejected')
                 """);
 
             t.HasCheckConstraint(

@@ -39,7 +39,7 @@ namespace Azul.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Azul.Api.Entities.Offering", b =>
@@ -62,7 +62,7 @@ namespace Azul.Api.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Offerings", (string)null);
+                    b.ToTable("Offerings");
                 });
 
             modelBuilder.Entity("Azul.Api.Entities.Provider", b =>
@@ -144,7 +144,7 @@ namespace Azul.Api.Migrations
 
                     b.HasIndex("PhoneNumber");
 
-                    b.ToTable("Providers", null, t =>
+                    b.ToTable("Providers", t =>
                         {
                             t.HasCheckConstraint("CK_Providers_Address_RequiredBusiness", "\"Type\" <> 'Business' OR \"Address\" IS NOT NULL");
 
@@ -160,7 +160,7 @@ namespace Azul.Api.Migrations
 
                             t.HasCheckConstraint("CK_Providers_PhoneNumber", "\"PhoneNumber\" ~ '^\\+549\\d{10}$'");
 
-                            t.HasCheckConstraint("CK_Providers_Status", "\"Status\" IN ('Pending', 'Published', 'Suspended')");
+                            t.HasCheckConstraint("CK_Providers_Status", "\"Status\" IN ('Pending', 'Published', 'Suspended', 'Rejected')");
 
                             t.HasCheckConstraint("CK_Providers_Type", "\"Type\" IN ('Individual', 'Venture', 'Business')");
                         });
@@ -194,7 +194,7 @@ namespace Azul.Api.Migrations
                         .IsUnique()
                         .HasFilter("\"RevokedAt\" IS NULL");
 
-                    b.ToTable("ProviderConsents", null, t =>
+                    b.ToTable("ProviderConsents", t =>
                         {
                             t.HasCheckConstraint("CK_ProviderConsents_RevokedAt", "\"RevokedAt\" IS NULL OR \"RevokedAt\" >= \"AcceptedAt\"");
                         });
@@ -215,7 +215,7 @@ namespace Azul.Api.Migrations
 
                     b.HasIndex("OfferingId");
 
-                    b.ToTable("ProviderOfferings", (string)null);
+                    b.ToTable("ProviderOfferings");
                 });
 
             modelBuilder.Entity("Azul.Api.Entities.Offering", b =>

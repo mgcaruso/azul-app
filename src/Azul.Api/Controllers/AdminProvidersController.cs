@@ -26,4 +26,11 @@ public class AdminProvidersController(IProviderWriteService providerWriteService
         await providerWriteService.DeleteAsync(id);
         return NoContent();
     }
+    
+    [HttpPut("publish/{id:int}")]
+    public async Task<ActionResult> Publish(int id)
+    {
+        await providerWriteService.DeleteAsync(id);
+        return NoContent();
+    }
 }
