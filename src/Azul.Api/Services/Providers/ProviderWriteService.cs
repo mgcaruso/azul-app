@@ -2,6 +2,7 @@ using Azul.Api.Common.Exceptions;
 using Azul.Api.Data;
 using Azul.Api.DTOs.Providers;
 using Azul.Api.Entities;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -91,6 +92,70 @@ public class ProviderWriteService(AppDbContext dbContext, IPhoneHasher phoneHash
         }
     }
 
+    private const string InvalidStatusTransitionCode = "invalid_status_transition";
+
+    // POST /api/admin/providers/{id}/publish: se puede publicar desde Pending o Suspended.
+    public async Task PublishAsync(int id)
+    {
+        var providerDb = await GetProviderByIdAsync(id);
+
+        if (providerDb.Status is not (ProviderStatus.Pending or ProviderStatus.Suspended))
+        {
+            var message = GetInvalidStatusMessage("publicar", providerDb.Status);
+            throw new ConflictException(InvalidStatusTransitionCode, message);
+        }
+
+        var now = DateTime.UtcNow;
+        providerDb.Status = ProviderStatus.Published;
+        providerDb.FirstPublishedAt ??= now;
+        providerDb.UpdatedAt = now;
+        await dbContext.SaveChangesAsync();
+    }
+
+    // POST /api/admin/providers/{id}/suspend: solo se suspenden perfiles Published.
+    public async Task SuspendAsync(int id)
+    {
+        var providerDb = await GetProviderByIdAsync(id);
+
+        if (providerDb.Status != ProviderStatus.Published)
+        {
+            var message = GetInvalidStatusMessage("suspender", providerDb.Status);
+            throw new ConflictException(InvalidStatusTransitionCode, message);
+        }
+
+        providerDb.Status = ProviderStatus.Suspended;
+        providerDb.UpdatedAt = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync();
+    }
+
+    // POST /api/admin/providers/{id}/reject: solo se rechazan perfiles Pending.
+    public async Task RejectAsync(int id)
+    {
+        var providerDb = await GetProviderByIdAsync(id);
+
+        if (providerDb.Status != ProviderStatus.Pending)
+        {
+            var message = GetInvalidStatusMessage("rechazar", providerDb.Status);
+            throw new ConflictException(InvalidStatusTransitionCode, message);
+        }
+
+        var now =  DateTime.UtcNow;
+        providerDb.Status = ProviderStatus.Rejected;
+        providerDb.UpdatedAt = now;
+        await dbContext.SaveChangesAsync();
+    }
+
+    private async Task<Provider> GetProviderByIdAsync(int id)
+    {
+        return await dbContext.Providers.FirstOrDefaultAsync(p => p.Id == id)
+               ?? throw new NotFoundException("provider", id);
+    }
+
+    private static string GetInvalidStatusMessage(string action, ProviderStatus status)
+    {
+        return $"No se puede {action} un provider con status: {status}";
+    }
+
     // Sin filtrar por estado: para devolver el proveedor recién creado (queda Pending).
     private async Task<ProviderDto> LoadByIdAsync(int id)
     {
@@ -165,4 +230,6 @@ public class ProviderWriteService(AppDbContext dbContext, IPhoneHasher phoneHash
             throw ValidationFailedException.ForField("offeringIds", $"No existen los servicios: {string.Join(", ", missing)}.");
         }
     }
+    
+    
 }

@@ -26,11 +26,34 @@ public class AdminProvidersController(IProviderWriteService providerWriteService
         await providerWriteService.DeleteAsync(id);
         return NoContent();
     }
-    
-    [HttpPut("publish/{id:int}")]
+
+    [HttpPost("{id:int}/publish")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> Publish(int id)
     {
-        await providerWriteService.DeleteAsync(id);
+        await providerWriteService.PublishAsync(id);
+        return NoContent();
+    }
+
+    [HttpPost("{id:int}/suspend")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult> Suspend(int id)
+    {
+        await providerWriteService.SuspendAsync(id);
+        return NoContent();
+    }
+
+    [HttpPost("{id:int}/reject")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult> Reject(int id)
+    {
+        await providerWriteService.RejectAsync(id);
         return NoContent();
     }
 }

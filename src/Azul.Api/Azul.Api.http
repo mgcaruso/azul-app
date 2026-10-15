@@ -405,3 +405,13 @@ Content-Type: application/json
 ### Lo público sigue abierto: GET sin clave -> 200
 GET {{baseUrl}}/api/categories
 Accept: application/json
+
+
+### admin/session with key
+GET {{baseUrl}}/api/admin/session
+X-Admin-Key: {{adminKey}}
+Content-Type: application/json
+
+### admin/session
+GET {{baseUrl}}/api/admin/session
+Content-Type: application/json
