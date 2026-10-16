@@ -2,6 +2,7 @@
 using Azul.Api.DTOs.Providers;
 using Azul.Api.Services.Providers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Azul.Api.Controllers;
 
@@ -39,6 +40,7 @@ public class ProvidersController(
 
     // Alta pública ("Sumá tu negocio"): siempre queda en estado Pending, el admin la revisa y la publica.
     [HttpPost]
+    [EnableRateLimiting("provider-signup")]
     [ProducesResponseType<ProviderDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ProviderDto>> Create([FromBody] ProviderSaveDto dto)

@@ -1,169 +1,21 @@
-﻿using Azul.Api.Common.Binding;
-using Azul.Api.Common.ErrorHandling;
-using Azul.Api.Data;
-using Azul.Api.Data.Seed;
-using System.Text.Json.Serialization;using Azul.Api.Services;
-using Azul.Api.Services.Catalog;
-using Azul.Api.Services.Categories;
-using Azul.Api.Services.Offerings;
-using Azul.Api.Services.Providers;
-using Azul.Api.Common.Validation;
-using FluentValidation;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi;
-using Azul.Api.Common.Security;
+﻿using Azul.Api.Common.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Falla al arrancar (no en el primer request) si falta la dirección base de las fotos.
-// En producción va por variable de entorno: Photos__BaseUrl.
-if (string.IsNullOrWhiteSpace(builder.Configuration["Photos:BaseUrl"]))
-{
-    throw new InvalidOperationException("Falta la configuración Photos:BaseUrl.");
-}
+builder.Configuration.EnsureRequiredSettings();
 
-if (string.IsNullOrWhiteSpace(builder.Configuration["Admin:ApiKey"]))
-{
-    throw new InvalidOperationException("Falta la configuración Admin:ApiKey.");
-}
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
-
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IOfferingService, OfferingService>();
-builder.Services.AddScoped<IProviderReadService, ProviderReadService>();
-builder.Services.AddScoped<IProviderWriteService, ProviderWriteService>();
-builder.Services.AddScoped<ICatalogService, CatalogService>();
-builder.Services.AddSingleton<IPhoneHasher, PhoneHasher>();
-builder.Services.AddSingleton<AdminKeyFilter>();
-
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-
-builder.Services.AddControllers(options =>
-    {
-        options.Filters.Add<ValidationFilter>();
-        options.ModelMetadataDetailsProviders.Add(new CamelCaseQueryNamesProvider());
-        options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
-        ModelStateValidation.UseSpanishMessages(options.ModelBindingMessageProvider);
-    })
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.AllowInputFormatterExceptionMessages = false;
-    })
-    .ConfigureApiBehaviorOptions(options =>
-        options.InvalidModelStateResponseFactory = context =>
-            throw ModelStateValidation.ToException(context.ModelState));
-
-builder.Services.AddExceptionHandler<AppExceptionHandler>();
-builder.Services.AddProblemDetails();
-
-const string FrontendCorsPolicy = "Frontend";
-builder.Services.AddCors(options =>
-    options.AddPolicy(FrontendCorsPolicy, policy => policy
-        .WithOrigins("http://localhost:5173")
-        .AllowAnyHeader()
-        .AllowAnyMethod()));
-
-// El documento OpenAPI toma las opciones de JSON de acá, no de AddJsonOptions de MVC.
-// Sin esto los enums salen como número y los int como "number | string" en los tipos del front.
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
-});
-
-builder.Services.AddOpenApi(options =>
-{
-    // Declara la clave de admin (header X-Admin-Key) para que Swagger muestre el botón Authorize.
-    options.AddDocumentTransformer((document, _, _) =>
-    {
-        document.Components ??= new OpenApiComponents();
-        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
-        document.Components.SecuritySchemes["AdminKey"] = new OpenApiSecurityScheme
-        {
-            Type = SecuritySchemeType.ApiKey,
-            Name = "X-Admin-Key",
-            In = ParameterLocation.Header,
-            Description = "Clave de admin (la misma de user-secrets: Admin:ApiKey).",
-        };
-        return Task.CompletedTask;
-    });
-
-    // Solo las rutas /api/admin piden la clave.
-    options.AddOperationTransformer((operation, context, _) =>
-    {
-        if (context.Description.RelativePath?.StartsWith("api/admin") == true)
-        {
-            operation.Security ??= [];
-            operation.Security.Add(new OpenApiSecurityRequirement
-            {
-                [new OpenApiSecuritySchemeReference("AdminKey", context.Document)] = []
-            });
-        }
-        return Task.CompletedTask;
-    });
-
-    options.AddSchemaTransformer((schema, context, _) =>
-    {
-        if (schema.Properties is null)
-        {
-            return Task.CompletedTask;
-        }
-
-        foreach (var jsonProperty in context.JsonTypeInfo.Properties)
-        {
-            if (!schema.Properties.TryGetValue(jsonProperty.Name, out var property))
-            {
-                continue;
-            }
-
-            var clrType = jsonProperty.PropertyType;
-            var isNonNullableValueType = clrType.IsValueType && Nullable.GetUnderlyingType(clrType) is null;
-            if (isNonNullableValueType || property.Type is { } type && !type.HasFlag(JsonSchemaType.Null))
-            {
-                schema.Required ??= new HashSet<string>();
-                schema.Required.Add(jsonProperty.Name);
-            }
-        }
-        return Task.CompletedTask;
-    });
-});
+builder.Services
+    .AddAppServices(builder.Configuration)
+    .AddAppControllers()
+    .AddAppCors()
+    .AddAppOpenApi()
+    .AddAppRateLimiting(builder.Configuration);
 
 var app = builder.Build();
 
-app.UseCors(FrontendCorsPolicy);
+await app.SeedDevelopmentDataAsync();
 
-app.UseExceptionHandler();
-
-if (app.Environment.IsDevelopment())
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await DevSeeder.SeedAsync(dbContext);
-    }
-
-    app.MapOpenApi();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/openapi/v1.json", "Azul API v1");
-        // Recuerda la clave en el navegador para no pegarla en cada recarga.
-        options.EnablePersistAuthorization();
-    });
-}
-
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
-
-// Mientras no haya CDN, las fotos se sirven desde wwwroot/photos.
-app.UseStaticFiles();
-
-app.UseAuthorization();
-
+app.UseAppPipeline();
 app.MapControllers();
 
 app.Run();

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Azul.Api.Controllers;
 
@@ -7,8 +8,9 @@ namespace Azul.Api.Controllers;
 public class AdminSessionController : AdminControllerBase
 {
     [HttpGet]
+    [EnableRateLimiting("admin-login")]
     public IActionResult Get()
     {
-        return  NoContent();
+        return NoContent();
     }
 }

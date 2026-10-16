@@ -13,7 +13,23 @@ public class ProviderWriteService(AppDbContext dbContext, IPhoneHasher phoneHash
     : IProviderWriteService
 {
     private const string InstagramUniqueIndex = "IX_Providers_InstagramUsername";
+    private const int MaxProvidersPerPhone = 5;
 
+    private async Task EnsurePhoneUnderLimit(string? phoneNumber)
+    {
+        if (string.IsNullOrEmpty(phoneNumber))
+        {
+            return;
+        }
+        var providersDb = await dbContext.Providers.Where(p => p.PhoneNumber == phoneNumber).Take(MaxProvidersPerPhone).CountAsync();
+        
+        if (providersDb >= MaxProvidersPerPhone)
+        {
+            throw new ConflictException("phone_limit_reached", "Este celular ya tiene el máximo de fichas.",
+                "phoneNumber");
+        }
+        
+    }
     // En la base va la key; al front se le devuelve la URL armada con la dirección base.
     private readonly string photoBaseUrl = configuration["Photos:BaseUrl"]
         ?? throw new InvalidOperationException("Falta la configuración Photos:BaseUrl.");
@@ -26,6 +42,7 @@ public class ProviderWriteService(AppDbContext dbContext, IPhoneHasher phoneHash
         var offeringIds = providerSaveDto.OfferingIds.Distinct().ToList();
         await EnsureOfferingsExist(offeringIds);
         await EnsureInstagramIsFree(providerSaveDto.InstagramUsername);
+        await EnsurePhoneUnderLimit(providerSaveDto.PhoneNumber);
 
         var now = DateTime.UtcNow;
         var provider = new Provider
