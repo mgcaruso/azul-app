@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Azul.Api.Services.Providers;
 
 // Lecturas de proveedores: listados, detalle, home y búsqueda. No modifica la base.
-public class ProviderReadService(AppDbContext dbContext, IConfiguration configuration) : IProviderReadService
+public class ProviderReadService(AppDbContext dbContext, IConfiguration configuration,ILogger<ProviderReadService> logger) : IProviderReadService
 {
     // En la base va la key; al front se le devuelve la URL armada con la dirección base.
     private readonly string photoBaseUrl = configuration["Photos:BaseUrl"]
@@ -39,14 +39,87 @@ public class ProviderReadService(AppDbContext dbContext, IConfiguration configur
             .PaginateAsync(query);
     }
 
-    // GET /api/admin/providers/{id}: cualquier estado.
+    // GET /api/admin/providers/duplicates: grupos de proveedores con el mismo celular o el mismo nombre.
+    public async Task<List<DuplicateGroupDto>> GetDuplicateGroupsAsync()
+    {
+        var candidatesDb = await dbContext.Providers.Where(p => dbContext.Providers.Any(p2 => p2.Id != p.Id &&
+                (p2.DisplayName.ToLower() == p.DisplayName.ToLower() || p.PhoneNumber == p2.PhoneNumber)))
+            .Select(p => new {p.Id, p.DisplayName, p.PhoneNumber, p.Status, p.CreatedAt}).ToListAsync();
+        logger.LogInformation("Duplicados {@Candidates}", candidatesDb);
+        var phoneGroups = candidatesDb
+            .GroupBy(p => p.PhoneNumber)
+            .Where(g => g.Count() > 1)
+            .ToList();
+        var nameGroups = candidatesDb
+            .GroupBy(p => p.DisplayName.Trim().ToLower())
+            .Where(g => g.Count() > 1)
+            .ToList();
+
+        var result = new List<DuplicateGroupDto>();
+
+
+        foreach (var group in phoneGroups)
+        {
+            result.Add(new DuplicateGroupDto
+            {
+                Reason = "phone",
+                Value = group.Key,
+                Providers = group.Select(p => new DuplicateCandidateDto
+                {
+                    Id = p.Id,
+                    DisplayName = p.DisplayName,
+                    Status = p.Status,
+                    CreatedAt = p.CreatedAt
+                }).ToList()
+            });
+        }
+        
+        foreach (var group in nameGroups)
+        {
+            var ids = group.Select(p => p.Id).Order().ToList();
+
+            var same = result.FirstOrDefault(box =>
+                box.Providers.Select(p => p.Id).Order().SequenceEqual(ids));
+
+            if (same is not null)
+                same.Reason = "both";
+            else
+                result.Add(new DuplicateGroupDto
+                {
+                    Reason = "name",
+                    Value = group.First().DisplayName,
+                    Providers = group.Select(p => new DuplicateCandidateDto
+                    {
+                        Id = p.Id,
+                        DisplayName = p.DisplayName,
+                        Status = p.Status,
+                        CreatedAt = p.CreatedAt
+                    }).ToList()
+                });
+        }
+
+        return result;
+    }
+
+    // GET /api/admin/providers/{id}: cualquier estado, más los posibles duplicados.
     public async Task<AdminProviderDto> GetAdminByIdAsync(int id)
     {
-        return await dbContext.Providers
-                   .Where(p => p.Id == id)
-                   .Select(ProviderProjections.ToAdminDto(photoBaseUrl))
-                   .FirstOrDefaultAsync()
-               ?? throw new NotFoundException("provider", id);
+        var provider = await dbContext.Providers
+                           .Where(p => p.Id == id)
+                           .Select(ProviderProjections.ToAdminDto(photoBaseUrl))
+                           .FirstOrDefaultAsync()
+                       ?? throw new NotFoundException("provider", id);
+
+        provider.PossibleDuplicates = await FindPossibleDuplicatesAsync(provider);
+        return provider;
+    }
+
+    // Otros proveedores (cualquier estado, distinto id) con el mismo celular o el mismo nombre.
+    // TODO (Guada): consultar dbContext.Providers y proyectar a DuplicateCandidateDto con Reason "phone" o "name".
+    private async Task<List<DuplicateCandidateDto>> FindPossibleDuplicatesAsync(AdminProviderDto provider)
+    {
+        await Task.CompletedTask;
+        return [];
     }
 
     // GET /api/providers/{id}: solo proveedores publicados.

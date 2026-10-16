@@ -60,6 +60,13 @@ public class AdminProvidersController(
         return NoContent();
     }
 
+    [HttpGet("duplicates")]
+    [ProducesResponseType<List<DuplicateGroupDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<DuplicateGroupDto>>> GetDuplicates()
+    {
+        return await providerReadService.GetDuplicateGroupsAsync();
+    }
+
     [HttpGet("{id:int}")]
     [ProducesResponseType<AdminProviderDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]

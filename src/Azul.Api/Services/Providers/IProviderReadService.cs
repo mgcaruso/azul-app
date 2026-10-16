@@ -9,6 +9,7 @@ public interface IProviderReadService
     Task<PagedResult<ProviderSummaryDto>> GetAllAsync(ProviderSearchQuery query);
     Task<ProviderDto> GetByIdAsync(int id);
     Task<AdminProviderDto> GetAdminByIdAsync(int id);
+    Task<List<DuplicateGroupDto>> GetDuplicateGroupsAsync();
     Task<PagedResult<AdminProviderListItemDto>> GetAdminListAsync(AdminProviderSearchQuery query);
     Task<PagedResult<ProviderSummaryDto>> GetByOfferingAsync(int offeringId, PageQuery pageQuery);
     Task<List<ProviderSummaryDto>> GetLatestAsync();
