@@ -67,6 +67,9 @@ public static class ProviderProjections
                 .OrderBy(po => po.Offering.Name)
                 .Select(po => new OfferingSummaryDto { Id = po.Offering.Id, Name = po.Offering.Name })
                 .ToList(),
+            FirstName = p.FirstName,
+            LastName = p.LastName,
+            PhotoKey = p.PhotoKey,
             Status = p.Status,
             CreatedAt = p.CreatedAt,
             FirstPublishedAt = p.FirstPublishedAt
