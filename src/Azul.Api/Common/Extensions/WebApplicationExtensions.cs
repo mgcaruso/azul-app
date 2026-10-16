@@ -1,5 +1,7 @@
 ﻿using Azul.Api.Data;
 using Azul.Api.Data.Seed;
+using Serilog;
+using Serilog.Events;
 
 namespace Azul.Api.Common.Extensions;
 
@@ -8,6 +10,14 @@ public static class WebApplicationExtensions
     // Middleware en el orden en que se ejecutan; los controllers se mapean aparte.
     public static WebApplication UseAppPipeline(this WebApplication app)
     {
+        // Primero, para registrar cada pedido (método, ruta, código y duración) sin la query string.
+        app.UseSerilogRequestLogging(options =>
+            options.GetLevel = (httpContext, _, exception) => exception is not null || httpContext.Response.StatusCode >= 500
+                ? LogEventLevel.Error
+                : httpContext.Response.StatusCode >= 400
+                    ? LogEventLevel.Warning
+                    : LogEventLevel.Information);
+
         app.UseCors(CorsExtensions.FrontendPolicy);
         app.UseRateLimiter();
 
