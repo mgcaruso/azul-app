@@ -28,6 +28,10 @@ public class AppExceptionHandler(
         {
             problem.Detail = appException.Message;
             problem.Extensions["code"] = appException.Code;
+
+            // Rechazo esperado (no es un error de la app): queda el código para entender qué pasó, sin datos personales.
+            logger.LogWarning("Pedido rechazado: {Status} {Code} en {Method} {Path}",
+                status, appException.Code, httpContext.Request.Method, httpContext.Request.Path);
         }
         else
         {

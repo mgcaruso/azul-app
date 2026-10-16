@@ -9,8 +9,11 @@ using Npgsql;
 namespace Azul.Api.Services.Providers;
 
 // Escrituras de proveedores: alta, edición y baja, con sus controles contra la base.
-public class ProviderWriteService(AppDbContext dbContext, IPhoneHasher phoneHasher, IConfiguration configuration)
-    : IProviderWriteService
+public class ProviderWriteService(
+    AppDbContext dbContext,
+    IPhoneHasher phoneHasher,
+    IConfiguration configuration,
+    ILogger<ProviderWriteService> logger) : IProviderWriteService
 {
     private const string InstagramUniqueIndex = "IX_Providers_InstagramUsername";
     private const int MaxProvidersPerPhone = 5;
@@ -66,6 +69,9 @@ public class ProviderWriteService(AppDbContext dbContext, IPhoneHasher phoneHash
         dbContext.Add(provider);
         await SaveChangesCatchingDuplicateInstagram();
 
+        // Solo ids y tipo: sin celular ni nombre.
+        logger.LogInformation("Alta creada: Id={ProviderId}, Tipo={ProviderType}", provider.Id, provider.Type);
+
         return await LoadByIdAsync(provider.Id);
     }
 
@@ -107,6 +113,8 @@ public class ProviderWriteService(AppDbContext dbContext, IPhoneHasher phoneHash
         {
             throw new NotFoundException("provider", id);
         }
+
+        logger.LogInformation("Ficha {ProviderId} borrada", id);
     }
 
     private const string InvalidStatusTransitionCode = "invalid_status_transition";
@@ -127,6 +135,7 @@ public class ProviderWriteService(AppDbContext dbContext, IPhoneHasher phoneHash
         providerDb.FirstPublishedAt ??= now;
         providerDb.UpdatedAt = now;
         await dbContext.SaveChangesAsync();
+        logger.LogInformation("Ficha {ProviderId} publicada", id);
     }
 
     // POST /api/admin/providers/{id}/suspend: solo se suspenden perfiles Published.
@@ -143,6 +152,7 @@ public class ProviderWriteService(AppDbContext dbContext, IPhoneHasher phoneHash
         providerDb.Status = ProviderStatus.Suspended;
         providerDb.UpdatedAt = DateTime.UtcNow;
         await dbContext.SaveChangesAsync();
+        logger.LogInformation("Ficha {ProviderId} suspendida", id);
     }
 
     // POST /api/admin/providers/{id}/reject: solo se rechazan perfiles Pending.
@@ -160,6 +170,7 @@ public class ProviderWriteService(AppDbContext dbContext, IPhoneHasher phoneHash
         providerDb.Status = ProviderStatus.Rejected;
         providerDb.UpdatedAt = now;
         await dbContext.SaveChangesAsync();
+        logger.LogInformation("Ficha {ProviderId} rechazada", id);
     }
 
     private async Task<Provider> GetProviderByIdAsync(int id)

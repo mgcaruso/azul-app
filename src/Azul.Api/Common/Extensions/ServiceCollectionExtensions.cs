@@ -16,8 +16,16 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAppServices(
         this IServiceCollection services, IConfiguration configuration)
     {
+        var isDevelopment = configuration["ASPNETCORE_ENVIRONMENT"] == "Development";
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("Default")));
+        {
+            options.UseNpgsql(configuration.GetConnectionString("Default"));
+            // Solo en desarrollo: muestra los valores de los parámetros del SQL en el log.
+            if (isDevelopment)
+            {
+                options.EnableSensitiveDataLogging();
+            }
+        });
 
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IOfferingService, OfferingService>();

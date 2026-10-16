@@ -1,4 +1,5 @@
-﻿using Azul.Api.Data;
+﻿using Azul.Api.Common.Logging;
+using Azul.Api.Data;
 using Azul.Api.Data.Seed;
 using Serilog;
 using Serilog.Events;
@@ -10,13 +11,30 @@ public static class WebApplicationExtensions
     // Middleware en el orden en que se ejecutan; los controllers se mapean aparte.
     public static WebApplication UseAppPipeline(this WebApplication app)
     {
-        // Primero, para registrar cada pedido (método, ruta, código y duración) sin la query string.
+        // Primero, para registrar cada pedido (método, ruta, código y duración); la query string va como propiedad aparte.
         app.UseSerilogRequestLogging(options =>
+        {
             options.GetLevel = (httpContext, _, exception) => exception is not null || httpContext.Response.StatusCode >= 500
                 ? LogEventLevel.Error
                 : httpContext.Response.StatusCode >= 400
                     ? LogEventLevel.Warning
-                    : LogEventLevel.Information);
+                    : LogEventLevel.Information;
+
+            // Datos extra de cada pedido, para filtrar y armar columnas en Seq.
+            options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+            {
+                diagnosticContext.Set("QueryString", httpContext.Request.QueryString.Value);
+                diagnosticContext.Set("ClientIp", httpContext.Connection.RemoteIpAddress?.ToString());
+                diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.ToString());
+                diagnosticContext.Set("IsAdmin", httpContext.Request.Path.StartsWithSegments("/api/admin"));
+            };
+        });
+
+        // Solo en desarrollo: el cuerpo de cada pedido en el log (trae datos personales, no va a producción).
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseMiddleware<RequestBodyLoggingMiddleware>();
+        }
 
         app.UseCors(CorsExtensions.FrontendPolicy);
         app.UseRateLimiter();
