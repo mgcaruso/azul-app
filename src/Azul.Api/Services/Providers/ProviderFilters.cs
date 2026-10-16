@@ -10,6 +10,11 @@ public static class ProviderFilters
         return type is null ? providers : providers.Where(p => p.Type == type);
     }
 
+    public static IQueryable<Provider> WhereInStatuses(this IQueryable<Provider> providers, List<ProviderStatus> statuses)
+    {
+        return statuses.Count == 0 ? providers : providers.Where(p => statuses.Contains(p.Status));
+    }
+
     public static IQueryable<Provider> WhereInCategories(this IQueryable<Provider> providers, List<int> categoryIds)
     {
         if (categoryIds.Count > 0)
@@ -19,7 +24,7 @@ public static class ProviderFilters
         }
         return providers;
     }
-    public static IQueryable<Provider> WhereMatchesText (this IQueryable<Provider> providers,string text)
+    public static IQueryable<Provider> WhereMatchesText(this IQueryable<Provider> providers, string? text)
     {
         if (!string.IsNullOrWhiteSpace(text))
         {
