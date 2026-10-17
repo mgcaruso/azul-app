@@ -18,6 +18,20 @@ public static class RateLimitingExtensions
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.OnRejected = WriteRateLimitedResponse;
 
+            // Tope total del login admin sin importar la IP: frena un ataque repartido en muchas IPs.
+            // Corre además del límite por IP de la política "admin-login".
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+            {
+                var esLoginAdmin = context.GetEndpoint()?.Metadata
+                    .GetMetadata<EnableRateLimitingAttribute>()?.PolicyName == "admin-login";
+
+                return esLoginAdmin
+                    ? RateLimitPartition.GetFixedWindowLimiter("admin-login-global",
+                        _ => new FixedWindowRateLimiterOptions
+                            { PermitLimit = rateLimit.AdminLoginGlobalPerMinute, Window = TimeSpan.FromMinutes(1) })
+                    : RateLimitPartition.GetNoLimiter("sin-limite");
+            });
+
             options.AddPolicy("admin-login", context =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
