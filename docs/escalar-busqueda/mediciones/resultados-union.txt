@@ -1,0 +1,229 @@
+Timing is on.
+=== catering
+ palabra  | total 
+----------+-------
+ catering |   310
+(1 row)
+
+Time: 8.264 ms
+ palabra  | total 
+----------+-------
+ catering |   310
+(1 row)
+
+Time: 2.511 ms
+ palabra  | total 
+----------+-------
+ catering |   310
+(1 row)
+
+Time: 1.796 ms
+=== reparaciones de celulares
+          palabra          | total 
+---------------------------+-------
+ reparaciones de celulares |     0
+(1 row)
+
+Time: 1.271 ms
+          palabra          | total 
+---------------------------+-------
+ reparaciones de celulares |     0
+(1 row)
+
+Time: 1.034 ms
+          palabra          | total 
+---------------------------+-------
+ reparaciones de celulares |     0
+(1 row)
+
+Time: 0.923 ms
+=== celulares
+  palabra  | total 
+-----------+-------
+ celulares |   329
+(1 row)
+
+Time: 2.153 ms
+  palabra  | total 
+-----------+-------
+ celulares |   329
+(1 row)
+
+Time: 1.971 ms
+  palabra  | total 
+-----------+-------
+ celulares |   329
+(1 row)
+
+Time: 1.518 ms
+=== repar
+ palabra | total 
+---------+-------
+ repar   |     0
+(1 row)
+
+Time: 0.550 ms
+ palabra | total 
+---------+-------
+ repar   |     0
+(1 row)
+
+Time: 0.480 ms
+ palabra | total 
+---------+-------
+ repar   |     0
+(1 row)
+
+Time: 0.766 ms
+=== 12345
+ palabra | total 
+---------+-------
+ 12345   |     1
+(1 row)
+
+Time: 1.011 ms
+ palabra | total 
+---------+-------
+ 12345   |     1
+(1 row)
+
+Time: 0.766 ms
+ palabra | total 
+---------+-------
+ 12345   |     1
+(1 row)
+
+Time: 0.690 ms
+=== gomez
+ palabra | total 
+---------+-------
+ gomez   |   630
+(1 row)
+
+Time: 2.190 ms
+ palabra | total 
+---------+-------
+ gomez   |   630
+(1 row)
+
+Time: 2.420 ms
+ palabra | total 
+---------+-------
+ gomez   |   630
+(1 row)
+
+Time: 2.307 ms
+=== taller
+ palabra | total 
+---------+-------
+ taller  |   507
+(1 row)
+
+Time: 2.242 ms
+ palabra | total 
+---------+-------
+ taller  |   507
+(1 row)
+
+Time: 2.210 ms
+ palabra | total 
+---------+-------
+ taller  |   507
+(1 row)
+
+Time: 2.169 ms
+=== Lucía
+ palabra | total 
+---------+-------
+ Lucía   |   622
+(1 row)
+
+Time: 2.336 ms
+ palabra | total 
+---------+-------
+ Lucía   |   622
+(1 row)
+
+Time: 2.308 ms
+ palabra | total 
+---------+-------
+ Lucía   |   622
+(1 row)
+
+Time: 2.233 ms
+=== atencion
+ palabra  | total 
+----------+-------
+ atencion | 18043
+(1 row)
+
+Time: 52.797 ms
+ palabra  | total 
+----------+-------
+ atencion | 18043
+(1 row)
+
+Time: 56.516 ms
+ palabra  | total 
+----------+-------
+ atencion | 18043
+(1 row)
+
+Time: 51.098 ms
+=== azul
+ palabra | total 
+---------+-------
+ azul    | 18043
+(1 row)
+
+Time: 53.611 ms
+ palabra | total 
+---------+-------
+ azul    | 18043
+(1 row)
+
+Time: 53.088 ms
+ palabra | total 
+---------+-------
+ azul    | 18043
+(1 row)
+
+Time: 55.134 ms
+=== jo
+ palabra | total 
+---------+-------
+ jo      |  1272
+(1 row)
+
+Time: 77.803 ms
+ palabra | total 
+---------+-------
+ jo      |  1272
+(1 row)
+
+Time: 78.580 ms
+ palabra | total 
+---------+-------
+ jo      |  1272
+(1 row)
+
+Time: 76.644 ms
+=== zzzz
+ palabra | total 
+---------+-------
+ zzzz    |     0
+(1 row)
+
+Time: 0.972 ms
+ palabra | total 
+---------+-------
+ zzzz    |     0
+(1 row)
+
+Time: 0.802 ms
+ palabra | total 
+---------+-------
+ zzzz    |     0
+(1 row)
+
+Time: 0.790 ms

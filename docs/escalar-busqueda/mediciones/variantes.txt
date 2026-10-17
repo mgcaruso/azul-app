@@ -1,0 +1,107 @@
+=== A) Solo nombre y descripción (sin la rama de servicios)
+                                                                          QUERY PLAN                                                                          
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=129.47..129.48 rows=1 width=8) (actual time=0.194..0.194 rows=1 loops=1)
+   Buffers: shared hit=28
+   ->  Bitmap Heap Scan on "Providers" p  (cost=116.52..129.46 rows=3 width=0) (actual time=0.192..0.192 rows=0 loops=1)
+         Recheck Cond: ((f_unaccent(lower(("DisplayName")::text)) ~~ '%catering%'::text) OR (f_unaccent(lower(("Description")::text)) ~~ '%catering%'::text))
+         Filter: (("Status")::text = 'Published'::text)
+         Buffers: shared hit=28
+         ->  BitmapOr  (cost=116.52..116.52 rows=3 width=0) (actual time=0.185..0.186 rows=0 loops=1)
+               Buffers: shared hit=28
+               ->  Bitmap Index Scan on ix_prov_name_tmp  (cost=0.00..56.17 rows=1 width=0) (actual time=0.067..0.067 rows=0 loops=1)
+                     Index Cond: (f_unaccent(lower(("DisplayName")::text)) ~~ '%catering%'::text)
+                     Buffers: shared hit=13
+               ->  Bitmap Index Scan on ix_prov_desc_tmp  (cost=0.00..60.35 rows=2 width=0) (actual time=0.118..0.118 rows=0 loops=1)
+                     Index Cond: (f_unaccent(lower(("Description")::text)) ~~ '%catering%'::text)
+                     Buffers: shared hit=15
+ Planning:
+   Buffers: shared hit=211
+ Planning Time: 3.973 ms
+ Execution Time: 0.345 ms
+(18 rows)
+
+=== B) Las tres ramas como UNION (cada una usa su propio índice)
+                                                                                 QUERY PLAN                                                                                 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=544.12..544.13 rows=1 width=8) (actual time=3.215..3.220 rows=1 loops=1)
+   Buffers: shared hit=1228
+   ->  HashAggregate  (cost=536.65..539.97 rows=332 width=4) (actual time=3.175..3.204 rows=310 loops=1)
+         Group Key: p."Id"
+         Batches: 1  Memory Usage: 45kB
+         Buffers: shared hit=1228
+         ->  Append  (cost=56.17..535.82 rows=332 width=4) (actual time=0.184..3.074 rows=310 loops=1)
+               Buffers: shared hit=1228
+               ->  Bitmap Heap Scan on "Providers" p  (cost=56.17..60.43 rows=1 width=4) (actual time=0.025..0.027 rows=0 loops=1)
+                     Recheck Cond: (f_unaccent(lower(("DisplayName")::text)) ~~ '%catering%'::text)
+                     Filter: (("Status")::text = 'Published'::text)
+                     Buffers: shared hit=13
+                     ->  Bitmap Index Scan on ix_prov_name_tmp  (cost=0.00..56.17 rows=1 width=0) (actual time=0.022..0.023 rows=0 loops=1)
+                           Index Cond: (f_unaccent(lower(("DisplayName")::text)) ~~ '%catering%'::text)
+                           Buffers: shared hit=13
+               ->  Bitmap Heap Scan on "Providers" p_1  (cost=60.36..68.55 rows=2 width=4) (actual time=0.043..0.044 rows=0 loops=1)
+                     Recheck Cond: (f_unaccent(lower(("Description")::text)) ~~ '%catering%'::text)
+                     Filter: (("Status")::text = 'Published'::text)
+                     Buffers: shared hit=15
+                     ->  Bitmap Index Scan on ix_prov_desc_tmp  (cost=0.00..60.35 rows=2 width=0) (actual time=0.040..0.040 rows=0 loops=1)
+                           Index Cond: (f_unaccent(lower(("Description")::text)) ~~ '%catering%'::text)
+                           Buffers: shared hit=15
+               ->  Nested Loop  (cost=7.41..405.18 rows=329 width=4) (actual time=0.114..2.977 rows=310 loops=1)
+                     Buffers: shared hit=1200
+                     ->  Nested Loop  (cost=7.12..268.50 rows=365 width=4) (actual time=0.079..0.723 rows=342 loops=1)
+                           Buffers: shared hit=174
+                           ->  Seq Scan on "Offerings" o  (cost=0.00..29.89 rows=1 width=4) (actual time=0.043..0.218 rows=1 loops=1)
+                                 Filter: (f_unaccent(lower(("Name")::text)) ~~ '%catering%'::text)
+                                 Rows Removed by Filter: 108
+                                 Buffers: shared hit=1
+                           ->  Bitmap Heap Scan on "ProviderOfferings" po  (cost=7.12..234.97 rows=365 width=8) (actual time=0.035..0.471 rows=342 loops=1)
+                                 Recheck Cond: ("OfferingId" = o."Id")
+                                 Heap Blocks: exact=171
+                                 Buffers: shared hit=173
+                                 ->  Bitmap Index Scan on "IX_ProviderOfferings_OfferingId"  (cost=0.00..7.03 rows=365 width=0) (actual time=0.022..0.022 rows=342 loops=1)
+                                       Index Cond: ("OfferingId" = o."Id")
+                                       Buffers: shared hit=2
+                     ->  Index Scan using "PK_Providers" on "Providers" p_2  (cost=0.29..0.37 rows=1 width=4) (actual time=0.006..0.006 rows=1 loops=342)
+                           Index Cond: ("Id" = po."ProviderId")
+                           Filter: (("Status")::text = 'Published'::text)
+                           Rows Removed by Filter: 0
+                           Buffers: shared hit=1026
+ Planning:
+   Buffers: shared hit=168
+ Planning Time: 0.933 ms
+ Execution Time: 3.328 ms
+(46 rows)
+
+=== C) Consulta original (para comparar)
+                                                                                            QUERY PLAN                                                                                            
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=322555.02..322555.03 rows=1 width=8) (actual time=109.548..109.551 rows=1 loops=1)
+   Buffers: shared hit=18255
+   ->  Index Scan using "IX_Providers_FirstPublishedAt" on "Providers" p  (cost=0.29..322532.46 rows=9023 width=0) (actual time=39.364..109.486 rows=310 loops=1)
+         Filter: ((f_unaccent(lower(("DisplayName")::text)) ~~ '%catering%'::text) OR (f_unaccent(lower(("Description")::text)) ~~ '%catering%'::text) OR (ANY ("Id" = (hashed SubPlan 2).col1)))
+         Rows Removed by Filter: 17733
+         Buffers: shared hit=18255
+         SubPlan 2
+           ->  Nested Loop  (cost=7.12..268.50 rows=365 width=4) (actual time=0.206..0.526 rows=342 loops=1)
+                 Buffers: shared hit=174
+                 ->  Seq Scan on "Offerings" o  (cost=0.00..29.89 rows=1 width=4) (actual time=0.162..0.287 rows=1 loops=1)
+                       Filter: (f_unaccent(lower(("Name")::text)) ~~ '%catering%'::text)
+                       Rows Removed by Filter: 108
+                       Buffers: shared hit=1
+                 ->  Bitmap Heap Scan on "ProviderOfferings" p0  (cost=7.12..234.97 rows=365 width=8) (actual time=0.041..0.209 rows=342 loops=1)
+                       Recheck Cond: ("OfferingId" = o."Id")
+                       Heap Blocks: exact=171
+                       Buffers: shared hit=173
+                       ->  Bitmap Index Scan on "IX_ProviderOfferings_OfferingId"  (cost=0.00..7.03 rows=365 width=0) (actual time=0.020..0.021 rows=342 loops=1)
+                             Index Cond: ("OfferingId" = o."Id")
+                             Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=24
+ Planning Time: 0.688 ms
+ JIT:
+   Functions: 23
+   Options: Inlining false, Optimization false, Expressions true, Deforming true
+   Timing: Generation 1.882 ms (Deform 0.546 ms), Inlining 0.000 ms, Optimization 3.698 ms, Emission 34.895 ms, Total 40.474 ms
+ Execution Time: 275.445 ms
+(28 rows)
+
