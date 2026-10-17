@@ -9,13 +9,13 @@ builder.Configuration.EnsureRequiredSettings();
 builder.Services
     .AddAppServices(builder.Configuration)
     .AddAppControllers()
-    .AddAppCors()
+    .AddAppCors(builder.Configuration)
     .AddAppOpenApi()
     .AddAppRateLimiting(builder.Configuration);
 
 var app = builder.Build();
 
-await app.SeedDevelopmentDataAsync();
+await app.SeedCatalogAsync();
 
 app.UseAppPipeline();
 app.MapControllers();

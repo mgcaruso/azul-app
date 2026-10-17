@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/logs/
+.git/
+.idea/
+docs/
+scripts/
+src/Azul.Api/wwwroot/photos/
+src/Azul.Api/http-client.private.env.json
+src/Azul.Api/appsettings.Development.json
+env.yaml

@@ -64,10 +64,10 @@ public static class WebApplicationExtensions
         return app;
     }
 
-    // Solo en desarrollo: carga el catálogo y proveedores de prueba.
-    public static async Task SeedDevelopmentDataAsync(this WebApplication app)
+    // Carga las categorías y servicios si la base está vacía: siempre en desarrollo y, en otros entornos, con Seed:Catalog=true.
+    public static async Task SeedCatalogAsync(this WebApplication app)
     {
-        if (!app.Environment.IsDevelopment())
+        if (!app.Environment.IsDevelopment() && !app.Configuration.GetValue<bool>("Seed:Catalog"))
         {
             return;
         }

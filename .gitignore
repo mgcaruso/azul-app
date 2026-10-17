@@ -483,3 +483,10 @@ $RECYCLE.BIN/
 
 # Variables privadas del cliente HTTP de Rider (clave de admin)
 http-client.private.env.json
+
+# Variables de deploy (secretos)
+env.yaml
+
+# Fotos subidas en desarrollo
+src/Azul.Api/wwwroot/photos/*
+!src/Azul.Api/wwwroot/photos/.gitkeep
