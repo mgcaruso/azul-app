@@ -7,6 +7,7 @@ public class AdminProviderDto : ProviderDto
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? PhotoKey { get; set; }
+    public string? PendingPhotoUrl { get; set; }
 
     public ProviderStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }

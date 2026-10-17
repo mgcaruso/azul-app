@@ -70,6 +70,10 @@ public static class ProviderProjections
             FirstName = p.FirstName,
             LastName = p.LastName,
             PhotoKey = p.PhotoKey,
+            PendingPhotoUrl = p.Photos
+                .Where(ph => ph.Status == ProviderPhotoStatus.Pending)
+                .Select(ph => photoBaseUrl + ph.Key)
+                .FirstOrDefault(),
             Status = p.Status,
             CreatedAt = p.CreatedAt,
             FirstPublishedAt = p.FirstPublishedAt

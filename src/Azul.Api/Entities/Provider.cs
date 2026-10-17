@@ -6,6 +6,8 @@ public class Provider
 {
     public int Id { get; set; }
 
+    public Guid? ClientId { get; set; }
+
     public ProviderType Type { get; set; }
 
     // Individual: "Nombre Apellido", lo arma el service. Emprendimiento y Negocio: la marca.
@@ -50,4 +52,6 @@ public class Provider
     public List<ProviderOffering> Offerings { get; set; } = [];
 
     public List<ProviderConsent> Consents { get; set; } = [];
+
+    public List<ProviderPhoto> Photos { get; set; } = [];
 }

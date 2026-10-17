@@ -22,6 +22,10 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             .IsUnique()
             .HasDatabaseName("IX_Providers_InstagramUsername");
 
+        p.HasIndex(x => x.ClientId)
+            .IsUnique()
+            .HasDatabaseName("IX_Providers_ClientId");
+
         p.HasIndex(x => x.PhoneNumber);
 
         p.HasIndex(x => x.FirstPublishedAt)

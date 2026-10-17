@@ -7,6 +7,7 @@ public interface IProviderWriteService
     Task<ProviderDto> CreateAsync(ProviderSaveDto providerSaveDto);
     Task UpdateAsync(int id, ProviderSaveDto providerSaveDto);
     Task DeleteAsync(int id);
+    Task SavePendingPhotoAsync(Guid clientId, Stream photo, CancellationToken ct);
     
     Task PublishAsync(int id);
     Task SuspendAsync(int id);

@@ -2,6 +2,7 @@ using Azul.Api.Common.Exceptions;
 using Azul.Api.Data;
 using Azul.Api.DTOs.Providers;
 using Azul.Api.Entities;
+using Azul.Api.Services.Images;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -13,9 +14,12 @@ public class ProviderWriteService(
     AppDbContext dbContext,
     IPhoneHasher phoneHasher,
     IConfiguration configuration,
+    IImageStorage imageStorage,
+    ImageProcessor imageProcessor,
     ILogger<ProviderWriteService> logger) : IProviderWriteService
 {
     private const string InstagramUniqueIndex = "IX_Providers_InstagramUsername";
+    private const string ClientIdUniqueIndex = "IX_Providers_ClientId";
     private const int MaxProvidersPerPhone = 5;
 
     private async Task EnsurePhoneUnderLimit(string? phoneNumber)
@@ -37,10 +41,45 @@ public class ProviderWriteService(
     private readonly string photoBaseUrl = configuration["Photos:BaseUrl"]
         ?? throw new InvalidOperationException("Falta la configuración Photos:BaseUrl.");
 
+    // PUT /api/providers/{clientId}/photo
+    public async Task SavePendingPhotoAsync(Guid clientId, Stream photo, CancellationToken ct)
+    {
+        var provider = await dbContext.Providers
+                           .Include(p => p.Photos.Where(ph => ph.Status == ProviderPhotoStatus.Pending))
+                           .FirstOrDefaultAsync(p => p.ClientId == clientId, ct)
+                       ?? throw new NotFoundException("provider", clientId);
+
+        var processed = await imageProcessor.ProcessAsync(photo, ct);
+        var baseKey = $"providers/{provider.Id}/{Guid.NewGuid():N}";
+        var key = $"{baseKey}.webp";
+
+        await imageStorage.SaveAsync(key, processed.Normal, "image/webp", ct);
+        await imageStorage.SaveAsync($"{baseKey}-128.webp", processed.Thumb, "image/webp", ct);
+
+        var replaced = provider.Photos.ToList();
+        dbContext.ProviderPhotos.RemoveRange(replaced);
+        provider.Photos.Add(new ProviderPhoto { Key = key, CreatedAt = DateTime.UtcNow });
+        provider.UpdatedAt = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync(ct);
+
+        foreach (var old in replaced)
+        {
+            await DeletePhotoFilesAsync(old.Key, ct);
+        }
+    }
+
+    private async Task DeletePhotoFilesAsync(string key, CancellationToken ct)
+    {
+        await imageStorage.DeleteAsync(key, ct);
+        await imageStorage.DeleteAsync(key.Replace(".webp", "-128.webp"), ct);
+    }
+
     // POST /api/providers
     public async Task<ProviderDto> CreateAsync(ProviderSaveDto providerSaveDto)
     {
         ProviderSaveDtoNormalizer.Normalize(providerSaveDto);
+
+        await EnsureNotAlreadyCreated(providerSaveDto.ClientId);
 
         var offeringIds = providerSaveDto.OfferingIds.Distinct().ToList();
         await EnsureOfferingsExist(offeringIds);
@@ -50,6 +89,7 @@ public class ProviderWriteService(
         var now = DateTime.UtcNow;
         var provider = new Provider
         {
+            ClientId = providerSaveDto.ClientId,
             DisplayName = string.Empty,
             PhoneNumber = string.Empty,
             Status = ProviderStatus.Pending,
@@ -67,7 +107,7 @@ public class ProviderWriteService(
         });
 
         dbContext.Add(provider);
-        await SaveChangesCatchingDuplicateInstagram();
+        await SaveChangesCatchingDuplicates();
 
         // Solo ids y tipo: sin celular ni nombre.
         logger.LogInformation("Alta creada: Id={ProviderId}, Tipo={ProviderType}", provider.Id, provider.Type);
@@ -99,19 +139,29 @@ public class ProviderWriteService(
             .Except(currentIds)
             .Select(offeringId => new ProviderOffering { OfferingId = offeringId, CreatedAt = now }));
 
-        await SaveChangesCatchingDuplicateInstagram();
+        await SaveChangesCatchingDuplicates();
     }
 
     // DELETE /api/providers/{id}
     public async Task DeleteAsync(int id)
     {
-        var deletedRows = await dbContext.Providers
+        var photoKeys = await dbContext.Providers
+            .Where(p => p.Id == id)
+            .Select(p => new { p.PhotoKey, Keys = p.Photos.Select(ph => ph.Key).ToList() })
+            .FirstOrDefaultAsync();
+
+        if (photoKeys is null)
+        {
+            throw new NotFoundException("provider", id);
+        }
+
+        await dbContext.Providers
             .Where(p => p.Id == id)
             .ExecuteDeleteAsync();
 
-        if (deletedRows == 0)
+        foreach (var key in photoKeys.Keys.Append(photoKeys.PhotoKey).OfType<string>().Distinct())
         {
-            throw new NotFoundException("provider", id);
+            await DeletePhotoFilesAsync(key, CancellationToken.None);
         }
 
         logger.LogInformation("Ficha {ProviderId} borrada", id);
@@ -122,7 +172,7 @@ public class ProviderWriteService(
     // POST /api/admin/providers/{id}/publish: se puede publicar desde Pending o Suspended.
     public async Task PublishAsync(int id)
     {
-        var providerDb = await GetProviderByIdAsync(id);
+        var providerDb = await GetProviderWithPhotosAsync(id);
 
         if (providerDb.Status is not (ProviderStatus.Pending or ProviderStatus.Suspended))
         {
@@ -131,10 +181,32 @@ public class ProviderWriteService(
         }
 
         var now = DateTime.UtcNow;
+        var replacedPhotoKeys = new List<string>();
+        var pendingPhoto = providerDb.Photos.FirstOrDefault(ph => ph.Status == ProviderPhotoStatus.Pending);
+        if (pendingPhoto is not null)
+        {
+            var replaced = providerDb.Photos.Where(ph => ph.Status == ProviderPhotoStatus.Approved).ToList();
+            dbContext.ProviderPhotos.RemoveRange(replaced);
+            replacedPhotoKeys.AddRange(replaced.Select(ph => ph.Key));
+            if (providerDb.PhotoKey is not null)
+            {
+                replacedPhotoKeys.Add(providerDb.PhotoKey);
+            }
+
+            pendingPhoto.Status = ProviderPhotoStatus.Approved;
+            pendingPhoto.ReviewedAt = now;
+            providerDb.PhotoKey = pendingPhoto.Key;
+        }
+
         providerDb.Status = ProviderStatus.Published;
         providerDb.FirstPublishedAt ??= now;
         providerDb.UpdatedAt = now;
         await dbContext.SaveChangesAsync();
+
+        foreach (var key in replacedPhotoKeys.Distinct())
+        {
+            await DeletePhotoFilesAsync(key, CancellationToken.None);
+        }
         logger.LogInformation("Ficha {ProviderId} publicada", id);
     }
 
@@ -158,7 +230,7 @@ public class ProviderWriteService(
     // POST /api/admin/providers/{id}/reject: solo se rechazan perfiles Pending.
     public async Task RejectAsync(int id)
     {
-        var providerDb = await GetProviderByIdAsync(id);
+        var providerDb = await GetProviderWithPhotosAsync(id);
 
         if (providerDb.Status != ProviderStatus.Pending)
         {
@@ -167,10 +239,28 @@ public class ProviderWriteService(
         }
 
         var now =  DateTime.UtcNow;
+        var discardedPhoto = providerDb.Photos.FirstOrDefault(ph => ph.Status == ProviderPhotoStatus.Pending);
+        if (discardedPhoto is not null)
+        {
+            discardedPhoto.Status = ProviderPhotoStatus.Rejected;
+            discardedPhoto.ReviewedAt = now;
+        }
+
         providerDb.Status = ProviderStatus.Rejected;
         providerDb.UpdatedAt = now;
         await dbContext.SaveChangesAsync();
+
+        if (discardedPhoto is not null)
+        {
+            await DeletePhotoFilesAsync(discardedPhoto.Key, CancellationToken.None);
+        }
         logger.LogInformation("Ficha {ProviderId} rechazada", id);
+    }
+
+    private async Task<Provider> GetProviderWithPhotosAsync(int id)
+    {
+        return await dbContext.Providers.Include(p => p.Photos).FirstOrDefaultAsync(p => p.Id == id)
+               ?? throw new NotFoundException("provider", id);
     }
 
     private async Task<Provider> GetProviderByIdAsync(int id)
@@ -225,8 +315,8 @@ public class ProviderWriteService(
         }
     }
 
-    // Si dos requests con el mismo Instagram pasan la consulta a la vez, el índice único ataja al segundo.
-    private async Task SaveChangesCatchingDuplicateInstagram()
+    // Si dos requests con el mismo Instagram o el mismo ClientId pasan la consulta a la vez, el índice único ataja al segundo.
+    private async Task SaveChangesCatchingDuplicates()
     {
         try
         {
@@ -240,7 +330,26 @@ public class ProviderWriteService(
         {
             throw DuplicateInstagram();
         }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+                                           {
+                                               SqlState: PostgresErrorCodes.UniqueViolation,
+                                               ConstraintName: ClientIdUniqueIndex
+                                           })
+        {
+            throw AlreadyCreated();
+        }
     }
+
+    private async Task EnsureNotAlreadyCreated(Guid? clientId)
+    {
+        if (clientId is not null && await dbContext.Providers.AnyAsync(p => p.ClientId == clientId))
+        {
+            throw AlreadyCreated();
+        }
+    }
+
+    private static ConflictException AlreadyCreated()
+        => new("already_created", "Esta ficha ya fue creada.");
 
     private static ConflictException DuplicateInstagram()
         => new("duplicate_instagram", "Ya hay un proveedor con ese usuario de Instagram.", "instagramUsername");

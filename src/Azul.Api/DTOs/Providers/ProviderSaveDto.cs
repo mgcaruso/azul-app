@@ -4,6 +4,8 @@ namespace Azul.Api.DTOs.Providers;
 
 public class ProviderSaveDto
 {
+    public Guid? ClientId { get; set; }
+
     public ProviderType? Type { get; set; }
 
     // Individual: nombre y apellido. El service arma DisplayName.

@@ -11,6 +11,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Provider> Providers => Set<Provider>();
     public DbSet<ProviderOffering> ProviderOfferings => Set<ProviderOffering>();
     public DbSet<ProviderConsent> ProviderConsents => Set<ProviderConsent>();
+    public DbSet<ProviderPhoto> ProviderPhotos => Set<ProviderPhoto>();
     
     public static string FUnaccent(string text) => throw new NotSupportedException();
 

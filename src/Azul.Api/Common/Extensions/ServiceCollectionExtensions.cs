@@ -2,6 +2,7 @@
 using Azul.Api.Data;
 using Azul.Api.Services;
 using Azul.Api.Services.Catalog;
+using Azul.Api.Services.Images;
 using Azul.Api.Services.Categories;
 using Azul.Api.Services.Offerings;
 using Azul.Api.Services.Providers;
@@ -33,6 +34,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProviderWriteService, ProviderWriteService>();
         services.AddScoped<ICatalogService, CatalogService>();
         services.AddSingleton<IPhoneHasher, PhoneHasher>();
+        services.AddSingleton<ImageProcessor>();
+        services.AddSingleton<IImageStorage, LocalImageStorage>();
         services.AddSingleton<AdminKeyFilter>();
 
         services.AddValidatorsFromAssemblyContaining<Program>();
