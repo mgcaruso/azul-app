@@ -3,6 +3,7 @@ using Azul.Api.Common.Exceptions;
 using Azul.Api.Common.Pagination;
 using Azul.Api.Common.Search;
 using Azul.Api.Data;
+using Azul.Api.DTOs.Categories;
 using Azul.Api.DTOs.Offerings;
 using Azul.Api.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,15 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
     private static readonly Expression<Func<Offering, OfferingSummaryDto>> ToSummaryDto =
         o => new OfferingSummaryDto { Id = o.Id, Name = o.Name };
 
-    public async Task<PagedResult<OfferingSummaryDto>> SearchAsync(OfferingSearchQuery query)
+    private static readonly Expression<Func<Offering, OfferingListItemDto>> ToListItemDto =
+        o => new OfferingListItemDto
+        {
+            Id = o.Id,
+            Name = o.Name,
+            Category = new CategoryRefDto { Id = o.Category.Id, Name = o.Category.Name }
+        };
+
+    public async Task<PagedResult<OfferingListItemDto>> SearchAsync(OfferingSearchQuery query)
     {
         IQueryable<Offering> offerings = dbContext.Offerings;
 
@@ -43,7 +52,7 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
         return await offerings
             .OrderBy(o => o.Name)
             .ThenBy(o => o.Id)
-            .Select(ToSummaryDto)
+            .Select(ToListItemDto)
             .PaginateAsync(query);
     }
 

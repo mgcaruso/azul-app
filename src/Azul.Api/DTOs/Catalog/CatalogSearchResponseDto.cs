@@ -9,5 +9,5 @@ public class CatalogSearchResponseDto
     public required ProviderSearchPageDto Providers { get; set; }
 
     // Vacío si no hay texto.
-    public List<OfferingSummaryDto> Offerings { get; set; } = [];
+    public List<OfferingListItemDto> Offerings { get; set; } = [];
 }

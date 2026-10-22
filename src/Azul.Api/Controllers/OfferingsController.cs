@@ -10,10 +10,10 @@ namespace Azul.Api.Controllers;
 public class OfferingsController(IOfferingService offeringService) : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType<PagedResult<OfferingSummaryDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PagedResult<OfferingListItemDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<PagedResult<OfferingSummaryDto>>> Search([FromQuery] OfferingSearchQuery query)
+    public async Task<ActionResult<PagedResult<OfferingListItemDto>>> Search([FromQuery] OfferingSearchQuery query)
     {
         return Ok(await offeringService.SearchAsync(query));
     }
