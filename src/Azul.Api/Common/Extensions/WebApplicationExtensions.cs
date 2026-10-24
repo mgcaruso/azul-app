@@ -1,6 +1,7 @@
 ﻿using Azul.Api.Common.Logging;
 using Azul.Api.Data;
 using Azul.Api.Data.Seed;
+using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using Serilog.Events;
 
@@ -11,6 +12,11 @@ public static class WebApplicationExtensions
     // Middleware en el orden en que se ejecutan; los controllers se mapean aparte.
     public static WebApplication UseAppPipeline(this WebApplication app)
     {
+        var forwardedHeaders = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedProto };
+        forwardedHeaders.KnownIPNetworks.Clear();
+        forwardedHeaders.KnownProxies.Clear();
+        app.UseForwardedHeaders(forwardedHeaders);
+
         // Primero, para registrar cada pedido (método, ruta, código y duración); la query string va como propiedad aparte.
         app.UseSerilogRequestLogging(options =>
         {
