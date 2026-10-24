@@ -2,4 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/Azul.Api/Azul.Api.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Azul.Api.Tests/Azul.Api.Tests.csproj" />
+  </Folder>
 </Solution>

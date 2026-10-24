@@ -24,6 +24,20 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
 
         p.HasIndex(x => x.PhoneNumber);
 
+        // 1 a 1 con el usuario. Nulo = ficha precargada que nadie reclamó todavía.
+        // Restrict: la base no deja borrar un usuario con ficha; el servicio decide qué hacer con ella.
+        p.HasOne(x => x.User)
+            .WithOne(u => u.Provider)
+            .HasForeignKey<Provider>(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Un usuario tiene como mucho una ficha; las fichas sin dueño no chocan entre sí.
+        p.HasIndex(x => x.UserId)
+            .IsUnique()
+            .HasFilter("""
+                       "UserId" IS NOT NULL
+                       """);
+
         p.HasIndex(x => x.FirstPublishedAt)
             .IsDescending()
             .HasFilter("""

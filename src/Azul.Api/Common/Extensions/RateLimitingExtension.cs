@@ -49,6 +49,12 @@ public static class RateLimitingExtensions
                     context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                     _ => new FixedWindowRateLimiterOptions
                         { PermitLimit = rateLimit.PhotoUploadPerHour, Window = TimeSpan.FromHours(1) }));
+
+            options.AddPolicy("google-sign-in", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    _ => new FixedWindowRateLimiterOptions
+                        { PermitLimit = rateLimit.GoogleSignInPerMinute, Window = TimeSpan.FromMinutes(1) }));
         });
         return services;
     }
