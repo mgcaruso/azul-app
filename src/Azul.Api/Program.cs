@@ -8,6 +8,7 @@ builder.Configuration.EnsureRequiredSettings();
 
 builder.Services
     .AddAppServices(builder.Configuration)
+    .AddAppAuth(builder.Configuration)
     .AddAppControllers()
     .AddAppCors(builder.Configuration)
     .AddAppOpenApi()

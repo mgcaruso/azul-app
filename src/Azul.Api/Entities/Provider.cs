@@ -50,4 +50,8 @@ public class Provider
     public List<ProviderOffering> Offerings { get; set; } = [];
 
     public List<ProviderConsent> Consents { get; set; } = [];
+
+    // Por ahora, como no está decidido cómo se va a lanzar la app, y para hacer precargas masivas para testear performance, nos quedamos con que el user sea opcional.
+    public Guid? UserId { get; set; }
+    public AppUser? User { get; set; }
 }

@@ -59,6 +59,7 @@ public static class WebApplicationExtensions
         // Mientras no haya CDN, las fotos se sirven desde wwwroot/photos.
         app.UseStaticFiles();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         return app;
