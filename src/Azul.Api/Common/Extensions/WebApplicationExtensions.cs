@@ -43,7 +43,6 @@ public static class WebApplicationExtensions
         }
 
         app.UseCors(CorsExtensions.FrontendPolicy);
-        app.UseRateLimiter();
 
         app.UseExceptionHandler();
 
@@ -66,6 +65,8 @@ public static class WebApplicationExtensions
         app.UseStaticFiles();
 
         app.UseAuthentication();
+        // Después de la autenticación, para que las políticas puedan limitar por usuario.
+        app.UseRateLimiter();
         app.UseAuthorization();
 
         return app;

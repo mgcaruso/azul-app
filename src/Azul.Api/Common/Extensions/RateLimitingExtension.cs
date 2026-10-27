@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.RateLimiting;
 using Azul.Api.Common.Security;
 using Microsoft.AspNetCore.Mvc;
@@ -40,7 +41,9 @@ public static class RateLimitingExtensions
 
             options.AddPolicy("provider-signup", context =>
                 RateLimitPartition.GetFixedWindowLimiter(
-                    context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    context.User.Identity?.IsAuthenticated == true
+                        ? $"user:{context.User.FindFirstValue(ClaimTypes.NameIdentifier)}"
+                        : $"ip:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}",
                     _ => new FixedWindowRateLimiterOptions
                         { PermitLimit = rateLimit.SignupPerHour, Window = TimeSpan.FromHours(1) }));
 
