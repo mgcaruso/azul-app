@@ -1,6 +1,9 @@
-﻿using Azul.Api.Common.Pagination;
+﻿using System.Security.Claims;
+using Azul.Api.Common.Pagination;
+using Azul.Api.Common.Security;
 using Azul.Api.DTOs.Providers;
 using Azul.Api.Services.Providers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -38,14 +41,19 @@ public class ProvidersController(
         return Ok(await providerReadService.GetByOfferingAsync(offeringId, pageQuery));
     }
 
-    // Alta pública ("Sumá tu negocio"): siempre queda en estado Pending, el admin la revisa y la publica.
+    // Alta de proveedor ("Sumá tu negocio"): siempre queda en estado Pending, el admin la revisa y la publica.
     [HttpPost]
+    [Authorize]
     [EnableRateLimiting("provider-signup")]
     [ProducesResponseType<ProviderDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)] 
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ProviderDto>> Create([FromBody] ProviderSaveDto dto)
     {
-        var created = await providerWriteService.CreateAsync(dto);
+        // user id obtenido de la cookie
+        var userId = User.GetUserId();
+        var created = await providerWriteService.CreateAsync(userId, dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 

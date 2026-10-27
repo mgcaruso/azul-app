@@ -30,6 +30,7 @@ public class AuthApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("ConnectionStrings:Default", connectionString);
         builder.UseSetting("Admin:ApiKey", "clave-de-tests");
         builder.UseSetting("RateLimit:GoogleSignInPerMinute", "1000");
+        builder.UseSetting("RateLimit:SignupPerHour", "1000");
         // En cada pedido, para que "cerrar sesión en todos lados" se note sin esperar 5 minutos.
         builder.UseSetting("Session:SecurityStampCheckMinutes", "0");
 

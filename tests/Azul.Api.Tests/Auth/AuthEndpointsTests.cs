@@ -5,7 +5,8 @@ using Azul.Api.DTOs.Auth;
 
 namespace Azul.Api.Tests.Auth;
 
-public class AuthEndpointsTests(AuthApiFactory factory) : IClassFixture<AuthApiFactory>
+[Collection(ApiCollection.Name)]
+public class AuthEndpointsTests(AuthApiFactory factory)
 {
     [Fact]
     public async Task SignIn_con_token_valido_devuelve_el_usuario_y_abre_la_sesion()
