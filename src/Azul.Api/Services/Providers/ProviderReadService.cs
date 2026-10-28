@@ -45,7 +45,7 @@ public class ProviderReadService(AppDbContext dbContext, IConfiguration configur
         var candidatesDb = await dbContext.Providers.Where(p => dbContext.Providers.Any(p2 => p2.Id != p.Id &&
                 (p2.DisplayName.ToLower() == p.DisplayName.ToLower() || p.PhoneNumber == p2.PhoneNumber)))
             .Select(p => new {p.Id, p.DisplayName, p.PhoneNumber, p.Status, p.CreatedAt}).ToListAsync();
-        logger.LogInformation("Duplicados {@Candidates}", candidatesDb);
+        logger.LogInformation("Duplicados: {Count} candidatos, Ids={Ids}", candidatesDb.Count, candidatesDb.Select(c => c.Id));
         var phoneGroups = candidatesDb
             .GroupBy(p => p.PhoneNumber)
             .Where(g => g.Count() > 1)

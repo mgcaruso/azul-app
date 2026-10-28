@@ -12,7 +12,7 @@ public static class WebApplicationExtensions
     // Middleware en el orden en que se ejecutan; los controllers se mapean aparte.
     public static WebApplication UseAppPipeline(this WebApplication app)
     {
-        var forwardedHeaders = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedProto };
+        var forwardedHeaders = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor };
         forwardedHeaders.KnownIPNetworks.Clear();
         forwardedHeaders.KnownProxies.Clear();
         app.UseForwardedHeaders(forwardedHeaders);

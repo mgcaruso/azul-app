@@ -2,7 +2,6 @@ using Azul.Api.Common.Exceptions;
 using Azul.Api.Data;
 using Azul.Api.DTOs.Providers;
 using Azul.Api.Entities;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -92,6 +91,10 @@ public class ProviderWriteService(
         var offeringIds = providerSaveDto.OfferingIds.Distinct().ToList();
         await EnsureOfferingsExist(offeringIds);
         await EnsureInstagramIsFree(providerSaveDto.InstagramUsername, excludeId: id);
+        if (providerSaveDto.PhoneNumber != provider.PhoneNumber)
+        {
+            await EnsurePhoneUnderLimit(providerSaveDto.PhoneNumber);
+        }
 
         var now = DateTime.UtcNow;
         ApplyFields(provider, providerSaveDto);

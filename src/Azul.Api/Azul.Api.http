@@ -41,7 +41,7 @@ X-Admin-Key: {{adminKey}}
 Content-Type: application/json
 
 {
-  "name": "Cervecerías"
+  "name": "   "
 }
 
 ### Editar una categoría -> 204

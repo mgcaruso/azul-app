@@ -63,5 +63,4 @@ public class ProvidersController(
     {
         return Ok(await providerReadService.GetFeaturedAsync());
     }
-    
 }
