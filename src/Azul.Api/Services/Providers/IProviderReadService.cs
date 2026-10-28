@@ -6,8 +6,8 @@ namespace Azul.Api.Services.Providers;
 
 public interface IProviderReadService
 {
-    Task<PagedResult<ProviderSummaryDto>> GetAllAsync(ProviderSearchQuery query);
     Task<ProviderDto> GetByIdAsync(int id);
+    Task<MyProviderDto> GetMineAsync(Guid userId);
     Task<AdminProviderDto> GetAdminByIdAsync(int id);
     Task<List<DuplicateGroupDto>> GetDuplicateGroupsAsync();
     Task<PagedResult<AdminProviderListItemDto>> GetAdminListAsync(AdminProviderSearchQuery query);

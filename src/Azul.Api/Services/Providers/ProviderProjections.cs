@@ -19,7 +19,6 @@ public static class ProviderProjections
             Type = p.Type,
             PhotoUrl = p.PhotoKey == null ? null : photoBaseUrl + p.PhotoKey,
             Description = p.Description,
-            PhoneNumber = p.PhoneNumber,
             InstagramUsername = p.InstagramUsername,
             CategoryName = p.Offerings
                 .OrderBy(po => po.Offering.Name)
@@ -49,6 +48,27 @@ public static class ProviderProjections
                 .OrderBy(po => po.Offering.Name)
                 .Select(po => new OfferingSummaryDto { Id = po.Offering.Id, Name = po.Offering.Name })
                 .ToList()
+        };
+
+    public static Expression<Func<Provider, MyProviderDto>> ToMyDto(string photoBaseUrl) =>
+        p => new MyProviderDto
+        {
+            Id = p.Id,
+            DisplayName = p.DisplayName,
+            Type = p.Type,
+            Description = p.Description,
+            PhotoUrl = p.PhotoKey == null ? null : photoBaseUrl + p.PhotoKey,
+            PhoneNumber = p.PhoneNumber,
+            InstagramUsername = p.InstagramUsername,
+            Address = p.Address,
+            Hours = p.Hours,
+            Offerings = p.Offerings
+                .OrderBy(po => po.Offering.Name)
+                .Select(po => new OfferingSummaryDto { Id = po.Offering.Id, Name = po.Offering.Name })
+                .ToList(),
+            Status = p.Status,
+            CreatedAt = p.CreatedAt,
+            FirstPublishedAt = p.FirstPublishedAt
         };
 
     public static Expression<Func<Provider, AdminProviderDto>> ToAdminDto(string photoBaseUrl) =>

@@ -22,6 +22,4 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     {
         return Ok(await categoryService.GetByIdAsync(id));
     }
-
-    
 }

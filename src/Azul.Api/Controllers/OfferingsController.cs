@@ -33,6 +33,4 @@ public class OfferingsController(IOfferingService offeringService) : ControllerB
     {
         return Ok(await offeringService.GetByCategoryAsync(categoryId));
     }
-
-    
 }

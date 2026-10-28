@@ -2,7 +2,6 @@ using Azul.Api.Common.Exceptions;
 using Azul.Api.Data;
 using Azul.Api.DTOs.Providers;
 using Azul.Api.Entities;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -16,6 +15,7 @@ public class ProviderWriteService(
     ILogger<ProviderWriteService> logger) : IProviderWriteService
 {
     private const string InstagramUniqueIndex = "IX_Providers_InstagramUsername";
+    private const string UserIdUniqueIndex = "IX_Providers_UserId";
     private const int MaxProvidersPerPhone = 5;
 
     private async Task EnsurePhoneUnderLimit(string? phoneNumber)
@@ -38,15 +38,17 @@ public class ProviderWriteService(
         ?? throw new InvalidOperationException("Falta la configuración Photos:BaseUrl.");
 
     // POST /api/providers
-    public async Task<ProviderDto> CreateAsync(ProviderSaveDto providerSaveDto)
+    public async Task<ProviderDto> CreateAsync(Guid userId, ProviderSaveDto providerSaveDto)
     {
         ProviderSaveDtoNormalizer.Normalize(providerSaveDto);
 
         var offeringIds = providerSaveDto.OfferingIds.Distinct().ToList();
+
+        await EnsureHasNoProvider(userId);
         await EnsureOfferingsExist(offeringIds);
         await EnsureInstagramIsFree(providerSaveDto.InstagramUsername);
         await EnsurePhoneUnderLimit(providerSaveDto.PhoneNumber);
-
+        
         var now = DateTime.UtcNow;
         var provider = new Provider
         {
@@ -55,7 +57,8 @@ public class ProviderWriteService(
             Status = ProviderStatus.Pending,
             CreatedAt = now,
             UpdatedAt = now,
-            Offerings = offeringIds.Select(id => new ProviderOffering { OfferingId = id, CreatedAt = now }).ToList()
+            Offerings = offeringIds.Select(id => new ProviderOffering { OfferingId = id, CreatedAt = now }).ToList(),
+            UserId = userId
         };
         ApplyFields(provider, providerSaveDto);
 
@@ -67,7 +70,7 @@ public class ProviderWriteService(
         });
 
         dbContext.Add(provider);
-        await SaveChangesCatchingDuplicateInstagram();
+        await SaveChangesCatchingDuplicates();
 
         // Solo ids y tipo: sin celular ni nombre.
         logger.LogInformation("Alta creada: Id={ProviderId}, Tipo={ProviderType}", provider.Id, provider.Type);
@@ -88,6 +91,10 @@ public class ProviderWriteService(
         var offeringIds = providerSaveDto.OfferingIds.Distinct().ToList();
         await EnsureOfferingsExist(offeringIds);
         await EnsureInstagramIsFree(providerSaveDto.InstagramUsername, excludeId: id);
+        if (providerSaveDto.PhoneNumber != provider.PhoneNumber)
+        {
+            await EnsurePhoneUnderLimit(providerSaveDto.PhoneNumber);
+        }
 
         var now = DateTime.UtcNow;
         ApplyFields(provider, providerSaveDto);
@@ -99,7 +106,7 @@ public class ProviderWriteService(
             .Except(currentIds)
             .Select(offeringId => new ProviderOffering { OfferingId = offeringId, CreatedAt = now }));
 
-        await SaveChangesCatchingDuplicateInstagram();
+        await SaveChangesCatchingDuplicates();
     }
 
     // DELETE /api/providers/{id}
@@ -225,8 +232,8 @@ public class ProviderWriteService(
         }
     }
 
-    // Si dos requests con el mismo Instagram pasan la consulta a la vez, el índice único ataja al segundo.
-    private async Task SaveChangesCatchingDuplicateInstagram()
+    // Los índices únicos atajan lo que las consultas previas no ven cuando llegan dos pedidos a la vez.
+    private async Task SaveChangesCatchingDuplicates()
     {
         try
         {
@@ -240,10 +247,24 @@ public class ProviderWriteService(
         {
             throw DuplicateInstagram();
         }
+        
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+                                           {
+                                               SqlState: PostgresErrorCodes.UniqueViolation,
+                                               ConstraintName: UserIdUniqueIndex
+                                           })
+        {
+  
+            logger.LogWarning("Alta duplicada atajada por el índice {Index}", UserIdUniqueIndex);
+            throw ProviderAlreadyExists();
+        }
     }
 
     private static ConflictException DuplicateInstagram()
         => new("duplicate_instagram", "Ya hay un proveedor con ese usuario de Instagram.", "instagramUsername");
+
+    private static ConflictException ProviderAlreadyExists()
+        => new("provider.already_exists", "Ya tenés una ficha creada.");
 
     private async Task EnsureOfferingsExist(List<int> offeringIds)
     {
@@ -256,6 +277,15 @@ public class ProviderWriteService(
         if (missing.Count > 0)
         {
             throw ValidationFailedException.ForField("offeringIds", $"No existen los servicios: {string.Join(", ", missing)}.");
+        }
+    }
+
+    private async Task EnsureHasNoProvider(Guid userId)
+    {
+        var hasProvider = await dbContext.Providers.AnyAsync(p => p.UserId == userId);
+        if (hasProvider)
+        {
+            throw ProviderAlreadyExists();
         }
     }
     

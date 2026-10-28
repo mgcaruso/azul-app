@@ -11,20 +11,11 @@ namespace Azul.Api.Services.Providers;
 // Lecturas de proveedores: listados, detalle, home y búsqueda. No modifica la base.
 public class ProviderReadService(AppDbContext dbContext, IConfiguration configuration,ILogger<ProviderReadService> logger) : IProviderReadService
 {
+    private const int FeaturedLimit = 5;
+
     // En la base va la key; al front se le devuelve la URL armada con la dirección base.
     private readonly string photoBaseUrl = configuration["Photos:BaseUrl"]
         ?? throw new InvalidOperationException("Falta la configuración Photos:BaseUrl.");
-
-    // GET /api/providers?type=&page=&pageSize=
-    public async Task<PagedResult<ProviderSummaryDto>> GetAllAsync(ProviderSearchQuery query)
-    {
-        return await GetPublishedProviders()
-            .WhereType(query.Type)
-            .OrderBy(p => p.DisplayName)
-            .ThenBy(p => p.Id)
-            .Select(ProviderProjections.ToSummaryDto(photoBaseUrl))
-            .PaginateAsync(query);
-    }
 
     // GET /api/admin/providers?status=&text=&type=&page=&pageSize=: todos los estados.
     public async Task<PagedResult<AdminProviderListItemDto>> GetAdminListAsync(AdminProviderSearchQuery query)
@@ -45,7 +36,7 @@ public class ProviderReadService(AppDbContext dbContext, IConfiguration configur
         var candidatesDb = await dbContext.Providers.Where(p => dbContext.Providers.Any(p2 => p2.Id != p.Id &&
                 (p2.DisplayName.ToLower() == p.DisplayName.ToLower() || p.PhoneNumber == p2.PhoneNumber)))
             .Select(p => new {p.Id, p.DisplayName, p.PhoneNumber, p.Status, p.CreatedAt}).ToListAsync();
-        logger.LogInformation("Duplicados {@Candidates}", candidatesDb);
+        logger.LogInformation("Duplicados: {Count} candidatos, Ids={Ids}", candidatesDb.Count, candidatesDb.Select(c => c.Id));
         var phoneGroups = candidatesDb
             .GroupBy(p => p.PhoneNumber)
             .Where(g => g.Count() > 1)
@@ -99,6 +90,17 @@ public class ProviderReadService(AppDbContext dbContext, IConfiguration configur
         }
 
         return result;
+    }
+
+    // GET /api/me/provider: la ficha de la persona que ingresó, en cualquier estado.
+    // No recibe un id: se busca por el UserId de la cookie, así nadie puede pedir la ficha de otra persona.
+    public async Task<MyProviderDto> GetMineAsync(Guid userId)
+    {
+        return await dbContext.Providers
+                   .Where(p => p.UserId == userId)
+                   .Select(ProviderProjections.ToMyDto(photoBaseUrl))
+                   .FirstOrDefaultAsync()
+               ?? throw new NotFoundException("provider", userId);
     }
 
     // GET /api/admin/providers/{id}: cualquier estado, más los posibles duplicados.
@@ -205,13 +207,12 @@ public class ProviderReadService(AppDbContext dbContext, IConfiguration configur
         return providersDb;
     }
 
+    // Primero los de perfil más completo; si no alcanzan, completa con los de menor puntaje.
     public async Task<List<ProviderSummaryDto>> GetFeaturedAsync()
     {
         var providersDb = await GetPublishedProviders()
-            .Where(ProviderProfile.IsComplete)
-            .OrderBy(p => p.DisplayName)
-            .ThenBy(p => p.Id)
-            .Take(6)
+            .SortByFeatured()
+            .Take(FeaturedLimit)
             .Select(ProviderProjections.ToSummaryDto(photoBaseUrl))
             .ToListAsync();
         return providersDb;

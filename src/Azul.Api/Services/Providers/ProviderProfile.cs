@@ -12,9 +12,4 @@ public static class ProviderProfile
         (!string.IsNullOrEmpty(p.PhotoKey) ? 1 : 0)
         + (!string.IsNullOrEmpty(p.Description) ? 1 : 0)
         + (!string.IsNullOrEmpty(p.InstagramUsername) ? 1 : 0);
-
-    public static readonly Expression<Func<Provider, bool>> IsComplete = p =>
-        !string.IsNullOrEmpty(p.PhotoKey)
-        && !string.IsNullOrEmpty(p.Description)
-        && !string.IsNullOrEmpty(p.InstagramUsername);
 }
