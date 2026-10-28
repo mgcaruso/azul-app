@@ -15,14 +15,6 @@ public class ProvidersController(
     IProviderReadService providerReadService,
     IProviderWriteService providerWriteService) : ControllerBase
 {
-    [HttpGet]
-    [ProducesResponseType<PagedResult<ProviderSummaryDto>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<PagedResult<ProviderSummaryDto>>> GetAll([FromQuery] ProviderSearchQuery query)
-    {
-        return Ok(await providerReadService.GetAllAsync(query));
-    }
-
     [HttpGet("{id:int}")]
     [ProducesResponseType<ProviderDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]

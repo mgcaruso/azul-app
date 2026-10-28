@@ -291,22 +291,6 @@ Content-Type: application/json
   "offeringIds": [{{offeringId}}]
 }
 
-### Listar todos los proveedores (página 1 de 12, ordenados por nombre)
-GET {{baseUrl}}/api/providers
-Accept: application/json
-
-### Solo negocios
-GET {{baseUrl}}/api/providers?type=Business
-Accept: application/json
-
-### Segunda página de a 2 (para ver hasMore con pocos datos)
-GET {{baseUrl}}/api/providers?page=2&pageSize=2
-Accept: application/json
-
-### Tipo que no existe -> 400 (validación)
-GET {{baseUrl}}/api/providers?type=Empresa
-Accept: application/json
-
 ### Traer un proveedor por id, con sus servicios
 GET {{baseUrl}}/api/providers/{{providerId}}
 Accept: application/json

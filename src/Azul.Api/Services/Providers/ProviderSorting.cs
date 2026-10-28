@@ -6,7 +6,7 @@ namespace Azul.Api.Services.Providers;
 public static class ProviderSorting
 {
     // Perfil más completo primero; después el más nuevo.
-    private static IOrderedQueryable<Provider> SortByFeatured(this IQueryable<Provider> providers)
+    public static IOrderedQueryable<Provider> SortByFeatured(this IQueryable<Provider> providers)
     {
         return providers
             .OrderByDescending(ProviderProfile.Score)

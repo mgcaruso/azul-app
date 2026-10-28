@@ -11,20 +11,11 @@ namespace Azul.Api.Services.Providers;
 // Lecturas de proveedores: listados, detalle, home y búsqueda. No modifica la base.
 public class ProviderReadService(AppDbContext dbContext, IConfiguration configuration,ILogger<ProviderReadService> logger) : IProviderReadService
 {
+    private const int FeaturedLimit = 5;
+
     // En la base va la key; al front se le devuelve la URL armada con la dirección base.
     private readonly string photoBaseUrl = configuration["Photos:BaseUrl"]
         ?? throw new InvalidOperationException("Falta la configuración Photos:BaseUrl.");
-
-    // GET /api/providers?type=&page=&pageSize=
-    public async Task<PagedResult<ProviderSummaryDto>> GetAllAsync(ProviderSearchQuery query)
-    {
-        return await GetPublishedProviders()
-            .WhereType(query.Type)
-            .OrderBy(p => p.DisplayName)
-            .ThenBy(p => p.Id)
-            .Select(ProviderProjections.ToSummaryDto(photoBaseUrl))
-            .PaginateAsync(query);
-    }
 
     // GET /api/admin/providers?status=&text=&type=&page=&pageSize=: todos los estados.
     public async Task<PagedResult<AdminProviderListItemDto>> GetAdminListAsync(AdminProviderSearchQuery query)
@@ -216,13 +207,12 @@ public class ProviderReadService(AppDbContext dbContext, IConfiguration configur
         return providersDb;
     }
 
+    // Primero los de perfil más completo; si no alcanzan, completa con los de menor puntaje.
     public async Task<List<ProviderSummaryDto>> GetFeaturedAsync()
     {
         var providersDb = await GetPublishedProviders()
-            .Where(ProviderProfile.IsComplete)
-            .OrderBy(p => p.DisplayName)
-            .ThenBy(p => p.Id)
-            .Take(6)
+            .SortByFeatured()
+            .Take(FeaturedLimit)
             .Select(ProviderProjections.ToSummaryDto(photoBaseUrl))
             .ToListAsync();
         return providersDb;
