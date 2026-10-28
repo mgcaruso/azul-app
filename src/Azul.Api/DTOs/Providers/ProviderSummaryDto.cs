@@ -11,7 +11,6 @@ public class ProviderSummaryDto
     public ProviderType Type { get; set; }
     public string? PhotoUrl { get; set; }
     public string? Description { get; set; }
-    public required string PhoneNumber { get; set; }
     public string? InstagramUsername { get; set; }
 
     // Rubro: la categoría de su primer servicio por orden alfabético.

@@ -1,15 +1,18 @@
 ﻿using System.Security.Claims;
 using Azul.Api.Common.Exceptions;
+using Azul.Api.Data;
 using Azul.Api.DTOs.Auth;
 using Azul.Api.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Azul.Api.Services.Auth;
 
 public class AuthService(
     IGoogleTokenValidator googleTokenValidator,
     UserManager<AppUser> userManager,
-    SignInManager<AppUser> signInManager) : IAuthService
+    SignInManager<AppUser> signInManager,
+    AppDbContext dbContext) : IAuthService
 {
     public async Task<MeDto> SignInWithGoogleAsync(string idToken)
     {
@@ -50,7 +53,14 @@ public class AuthService(
         }
 
         await signInManager.SignInAsync(appUser, isPersistent: true);
-        return new MeDto(appUser.Id, googleUser.Email, appUser.DisplayName, appUser.PictureUrl);
+        return await ToMeDtoAsync(appUser);
+    }
+
+    // Un solo lugar donde se arma lo que el front sabe de la sesión.
+    private async Task<MeDto> ToMeDtoAsync(AppUser appUser)
+    {
+        var isProvider = await dbContext.Providers.AnyAsync(p => p.UserId == appUser.Id);
+        return new MeDto(appUser.Id, appUser.Email!, appUser.DisplayName, appUser.PictureUrl, isProvider);
     }
 
     private static void EnsureSucceeded(IdentityResult result)
@@ -72,7 +82,7 @@ public class AuthService(
             throw UnauthorizedException.NotSignedIn();
         }
 
-        return new MeDto(appUser.Id, appUser.Email!, appUser.DisplayName, appUser.PictureUrl);
+        return await ToMeDtoAsync(appUser);
     }
 
     public Task SignOutAsync() => signInManager.SignOutAsync();

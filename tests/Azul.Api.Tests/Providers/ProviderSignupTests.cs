@@ -66,11 +66,73 @@ public class ProviderSignupTests(AuthApiFactory factory)
         Assert.Equal(HttpStatusCode.Created, second.StatusCode);
     }
 
+    [Fact]
+    public async Task Me_dice_si_el_usuario_ya_tiene_ficha()
+    {
+        var client = await SignedInClientAsync();
+
+        var before = await client.GetFromJsonAsync<MeDto>("/api/me");
+        await client.PostAsJsonAsync("/api/providers", NewProvider());
+        var after = await client.GetFromJsonAsync<MeDto>("/api/me");
+
+        Assert.False(before!.IsProvider);
+        Assert.True(after!.IsProvider);
+    }
+
+    [Fact]
+    public async Task Ingresar_con_ficha_ya_creada_devuelve_isProvider_true()
+    {
+        var subject = Guid.NewGuid().ToString("N");
+        var client = await SignedInClientAsync(subject);
+        await client.PostAsJsonAsync("/api/providers", NewProvider());
+
+        // Otro dispositivo de la misma persona: la respuesta del login ya trae isProvider.
+        var signIn = await factory.CreateClient().PostAsJsonAsync(
+            "/api/auth/google", new GoogleSignInDto(FakeGoogleTokenValidator.TokenFor(subject)));
+        var me = await signIn.Content.ReadFromJsonAsync<MeDto>();
+
+        Assert.True(me!.IsProvider);
+    }
+
+    [Fact]
+    public async Task Mi_ficha_devuelve_la_ficha_propia_con_su_estado()
+    {
+        var client = await SignedInClientAsync();
+        await client.PostAsJsonAsync("/api/providers", NewProvider());
+
+        var response = await client.GetAsync("/api/me/provider");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal("Pending", json.RootElement.GetProperty("status").GetString());
+        Assert.Equal("Ana Test", json.RootElement.GetProperty("displayName").GetString());
+    }
+
+    [Fact]
+    public async Task Mi_ficha_no_muestra_la_de_otra_persona()
+    {
+        var ana = await SignedInClientAsync();
+        await ana.PostAsJsonAsync("/api/providers", NewProvider());
+        var beto = await SignedInClientAsync();
+
+        var response = await beto.GetAsync("/api/me/provider");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Mi_ficha_sin_sesion_devuelve_401()
+    {
+        var response = await factory.CreateClient().GetAsync("/api/me/provider");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     // Un cliente con la cookie de un usuario nuevo (cada test usa el suyo, así no se pisan las fichas).
-    private async Task<HttpClient> SignedInClientAsync()
+    private async Task<HttpClient> SignedInClientAsync(string? subject = null)
     {
         var client = factory.CreateClient();
-        var token = FakeGoogleTokenValidator.TokenFor(Guid.NewGuid().ToString("N"));
+        var token = FakeGoogleTokenValidator.TokenFor(subject ?? Guid.NewGuid().ToString("N"));
         var signIn = await client.PostAsJsonAsync("/api/auth/google", new GoogleSignInDto(token));
         signIn.EnsureSuccessStatusCode();
         return client;

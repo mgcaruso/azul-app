@@ -101,6 +101,17 @@ public class ProviderReadService(AppDbContext dbContext, IConfiguration configur
         return result;
     }
 
+    // GET /api/me/provider: la ficha de la persona que ingresó, en cualquier estado.
+    // No recibe un id: se busca por el UserId de la cookie, así nadie puede pedir la ficha de otra persona.
+    public async Task<MyProviderDto> GetMineAsync(Guid userId)
+    {
+        return await dbContext.Providers
+                   .Where(p => p.UserId == userId)
+                   .Select(ProviderProjections.ToMyDto(photoBaseUrl))
+                   .FirstOrDefaultAsync()
+               ?? throw new NotFoundException("provider", userId);
+    }
+
     // GET /api/admin/providers/{id}: cualquier estado, más los posibles duplicados.
     public async Task<AdminProviderDto> GetAdminByIdAsync(int id)
     {
