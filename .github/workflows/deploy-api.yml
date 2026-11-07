@@ -58,7 +58,7 @@ jobs:
           else
             echo "ROLLBACK=true" >> "$GITHUB_ENV"
           fi
-          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "COMMIT_SHA=$version" >> "$GITHUB_ENV"
           echo "IMAGE=$IMAGE_REPO:$version" >> "$GITHUB_ENV"
           echo "Versión a deployar: $version"
 
@@ -136,7 +136,7 @@ jobs:
             --cpu-boost \
             --env-vars-file=deploy/cloudrun-env.yaml \
             --set-secrets="Admin__ApiKey=azul-admin-api-key:latest,ProviderConsent__PhoneHashKey=azul-phone-hash-key:latest,ConnectionStrings__Default=azul-db-connection:latest" \
-            --labels="commit=${VERSION:0:12}" \
+            --labels="commit=${COMMIT_SHA:0:12}" \
             --no-traffic \
             --tag=candidata \
             --quiet
@@ -163,7 +163,7 @@ jobs:
             echo ""
             echo "| | |"
             echo "|---|---|"
-            echo "| Commit | \`$VERSION\` |"
+            echo "| Commit | \`$COMMIT_SHA\` |"
             echo "| Revisión | \`$revision\` |"
             echo "| Rollback | $ROLLBACK |"
           } >> "$GITHUB_STEP_SUMMARY"
