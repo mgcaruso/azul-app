@@ -29,8 +29,8 @@ public static class WebApplicationExtensions
             // Datos extra de cada pedido, para filtrar y armar columnas en Seq.
             options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
             {
-                diagnosticContext.Set("QueryString", httpContext.Request.QueryString.Value);
-                diagnosticContext.Set("ClientIp", httpContext.Connection.RemoteIpAddress?.ToString());
+                diagnosticContext.Set("QueryString", httpContext.Request.QueryString.Value ?? string.Empty);
+                diagnosticContext.Set("ClientIp", httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconocida");
                 diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.ToString());
                 diagnosticContext.Set("IsAdmin", httpContext.Request.Path.StartsWithSegments("/api/admin"));
             };
