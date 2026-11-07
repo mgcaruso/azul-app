@@ -35,7 +35,9 @@ image="$IMAGE_REPO:$version"
 echo "Version to deploy: $version"
 
 if ! $rollback; then
-  docker info >/dev/null 2>&1 || die "Docker is not responding. Open Docker Desktop and wait until it is running."
+  # Ask the server (not the client) for its version, and show Docker's own error if it fails.
+  docker_error=$(docker version --format '{{.Server.Version}}' 2>&1 >/dev/null) \
+    || die "Docker is not responding. Open Docker Desktop and wait until it is running. Docker said: $docker_error"
 fi
 
 step "Checking the gcloud session"
