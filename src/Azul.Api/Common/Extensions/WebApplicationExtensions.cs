@@ -1,4 +1,5 @@
 ﻿using Azul.Api.Common.Logging;
+using Azul.Api.Common.Security;
 using Azul.Api.Data;
 using Azul.Api.Data.Seed;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -16,6 +17,9 @@ public static class WebApplicationExtensions
         forwardedHeaders.KnownIPNetworks.Clear();
         forwardedHeaders.KnownProxies.Clear();
         app.UseForwardedHeaders(forwardedHeaders);
+
+        // Detrás del Worker: toma la IP real del usuario de X-Client-IP, solo si trae el secreto del proxy.
+        app.UseMiddleware<TrustedProxyClientIpMiddleware>();
 
         // Primero, para registrar cada pedido (método, ruta, código y duración); la query string va como propiedad aparte.
         app.UseSerilogRequestLogging(options =>

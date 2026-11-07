@@ -135,7 +135,7 @@ jobs:
             --memory=512Mi \
             --cpu-boost \
             --env-vars-file=deploy/cloudrun-env.yaml \
-            --set-secrets="Admin__ApiKey=azul-admin-api-key:latest,ProviderConsent__PhoneHashKey=azul-phone-hash-key:latest,ConnectionStrings__Default=azul-db-connection:latest" \
+            --set-secrets="Admin__ApiKey=azul-admin-api-key:latest,ProviderConsent__PhoneHashKey=azul-phone-hash-key:latest,ConnectionStrings__Default=azul-db-connection:latest,Proxy__Secret=azul-proxy-secret:latest" \
             --labels="commit=${COMMIT_SHA:0:12}" \
             --no-traffic \
             --tag=candidata \
