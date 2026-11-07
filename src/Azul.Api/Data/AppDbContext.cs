@@ -16,6 +16,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Offering> Offerings => Set<Offering>();
     public DbSet<Provider> Providers => Set<Provider>();
     public DbSet<ProviderOffering> ProviderOfferings => Set<ProviderOffering>();
+    public DbSet<ProviderContact> ProviderContacts => Set<ProviderContact>();
     public DbSet<ProviderConsent> ProviderConsents => Set<ProviderConsent>();
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
     

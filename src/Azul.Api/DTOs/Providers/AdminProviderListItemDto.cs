@@ -8,7 +8,8 @@ public class AdminProviderListItemDto
     public int Id { get; set; }
     public required string DisplayName { get; set; }
     public ProviderType Type { get; set; }
-    public required string PhoneNumber { get; set; }
+    public string? PhoneNumber { get; set; }
+    public string? CallPhone { get; set; }
     public ProviderStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
 }

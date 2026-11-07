@@ -11,5 +11,5 @@ public static class ProviderProfile
     public static readonly Expression<Func<Provider, int>> Score = p =>
         (!string.IsNullOrEmpty(p.PhotoKey) ? 1 : 0)
         + (!string.IsNullOrEmpty(p.Description) ? 1 : 0)
-        + (!string.IsNullOrEmpty(p.InstagramUsername) ? 1 : 0);
+        + (!string.IsNullOrEmpty(p.Contact.InstagramUsername) ? 1 : 0);
 }

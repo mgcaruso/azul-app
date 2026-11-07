@@ -19,7 +19,7 @@ public static class ProviderProjections
             Type = p.Type,
             PhotoUrl = p.PhotoKey == null ? null : photoBaseUrl + p.PhotoKey,
             Description = p.Description,
-            InstagramUsername = p.InstagramUsername,
+            InstagramUsername = p.Contact.InstagramUsername,
             CategoryName = p.Offerings
                 .OrderBy(po => po.Offering.Name)
                 .Select(po => po.Offering.Category.Name)
@@ -40,8 +40,10 @@ public static class ProviderProjections
             Type = p.Type,
             Description = p.Description,
             PhotoUrl = p.PhotoKey == null ? null : photoBaseUrl + p.PhotoKey,
-            PhoneNumber = p.PhoneNumber,
-            InstagramUsername = p.InstagramUsername,
+            PhoneNumber = p.Contact.PhoneNumber,
+            CallPhone = p.Contact.CallPhone,
+            ExtraUrl = p.Contact.ExtraUrl,
+            InstagramUsername = p.Contact.InstagramUsername,
             Address = p.Address,
             Hours = p.Hours,
             Offerings = p.Offerings
@@ -58,8 +60,10 @@ public static class ProviderProjections
             Type = p.Type,
             Description = p.Description,
             PhotoUrl = p.PhotoKey == null ? null : photoBaseUrl + p.PhotoKey,
-            PhoneNumber = p.PhoneNumber,
-            InstagramUsername = p.InstagramUsername,
+            PhoneNumber = p.Contact.PhoneNumber,
+            CallPhone = p.Contact.CallPhone,
+            ExtraUrl = p.Contact.ExtraUrl,
+            InstagramUsername = p.Contact.InstagramUsername,
             Address = p.Address,
             Hours = p.Hours,
             Offerings = p.Offerings
@@ -79,8 +83,10 @@ public static class ProviderProjections
             Type = p.Type,
             Description = p.Description,
             PhotoUrl = p.PhotoKey == null ? null : photoBaseUrl + p.PhotoKey,
-            PhoneNumber = p.PhoneNumber,
-            InstagramUsername = p.InstagramUsername,
+            PhoneNumber = p.Contact.PhoneNumber,
+            CallPhone = p.Contact.CallPhone,
+            ExtraUrl = p.Contact.ExtraUrl,
+            InstagramUsername = p.Contact.InstagramUsername,
             Address = p.Address,
             Hours = p.Hours,
             Offerings = p.Offerings
@@ -101,7 +107,8 @@ public static class ProviderProjections
             Id = p.Id,
             DisplayName = p.DisplayName,
             Type = p.Type,
-            PhoneNumber = p.PhoneNumber,
+            PhoneNumber = p.Contact.PhoneNumber,
+            CallPhone = p.Contact.CallPhone,
             Status = p.Status,
             CreatedAt = p.CreatedAt
         };

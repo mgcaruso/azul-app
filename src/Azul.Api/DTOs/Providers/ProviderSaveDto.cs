@@ -15,7 +15,10 @@ public class ProviderSaveDto
 
     public string? Description { get; set; }
     public string? PhotoKey { get; set; }
+    // Hace falta al menos uno de los dos teléfonos. Formato internacional: +54 9 2281 40-1234 (WhatsApp), +54 2281 45-6789 (fijo).
     public string? PhoneNumber { get; set; }
+    public string? CallPhone { get; set; }
+    public string? ExtraUrl { get; set; }
     public string? InstagramUsername { get; set; }
     public string? Address { get; set; }
     public string? Hours { get; set; }

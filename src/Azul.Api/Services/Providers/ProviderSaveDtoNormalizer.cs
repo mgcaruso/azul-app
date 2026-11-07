@@ -3,7 +3,7 @@ using Azul.Api.DTOs.Providers;
 
 namespace Azul.Api.Services.Providers;
 
-// Deja el request en la forma que espera el validador y que se guarda en la base.
+// Deja el request en la forma que espera el validador y que se guarda en la base (limpieza, no corrección).
 // Es idempotente: el validador lo corre antes de validar y el service otra vez antes de guardar.
 public static class ProviderSaveDtoNormalizer
 {
@@ -16,37 +16,21 @@ public static class ProviderSaveDtoNormalizer
         dto.PhotoKey = Clean(dto.PhotoKey);
         dto.Address = Clean(dto.Address);
         dto.Hours = Clean(dto.Hours);
-        dto.PhoneNumber = NormalizePhoneNumber(dto.PhoneNumber);
+        dto.PhoneNumber = NormalizePhone(dto.PhoneNumber);
+        dto.CallPhone = NormalizePhone(dto.CallPhone);
+        dto.ExtraUrl = Clean(dto.ExtraUrl);
         dto.InstagramUsername = NormalizeInstagram(dto.InstagramUsername);
     }
 
-    // Lleva el celular a +549 + 10 dígitos (código de área sin 0 y número sin 15).
-    // Acepta "2281 40-1234", "+54 9 2281 401234", "542281401234" o "02281 401234".
-    // Si no puede, devuelve el texto limpio para que el validador lo rechace.
-    public static string? NormalizePhoneNumber(string? value)
+    // No corrige números: solo quita los adornos (espacios, guiones, puntos y paréntesis) para que
+    // "+54 9 2281 40-1234" y "+5492281401234" valgan lo mismo. Si el número está mal escrito
+    // (sin "+", sin código de país, con letras) lo deja como está y el validador lo rechaza con un mensaje claro.
+    public static string? NormalizePhone(string? value)
     {
         var cleaned = Clean(value);
-        if (cleaned is null)
-        {
-            return null;
-        }
-
-        var digits = new string(cleaned.Where(char.IsAsciiDigit).ToArray());
-
-        if (digits.StartsWith("549") && digits.Length == 13)
-        {
-            digits = digits[3..];
-        }
-        else if (digits.StartsWith("54") && digits.Length == 12)
-        {
-            digits = digits[2..];
-        }
-        else if (digits.StartsWith('0') && digits.Length == 11)
-        {
-            digits = digits[1..];
-        }
-
-        return digits.Length == 10 ? $"+549{digits}" : cleaned;
+        return cleaned is null
+            ? null
+            : new string(cleaned.Where(c => c is not (' ' or '-' or '.' or '(' or ')')).ToArray());
     }
 
     public static string? NormalizeInstagram(string? value)

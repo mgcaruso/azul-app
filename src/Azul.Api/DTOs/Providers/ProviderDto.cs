@@ -10,7 +10,9 @@ public class ProviderDto
     public ProviderType Type { get; set; }
     public string? Description { get; set; }
     public string? PhotoUrl { get; set; }
-    public required string PhoneNumber { get; set; }
+    public string? PhoneNumber { get; set; }
+    public string? CallPhone { get; set; }
+    public string? ExtraUrl { get; set; }
     public string? InstagramUsername { get; set; }
     public string? Address { get; set; }
     public string? Hours { get; set; }

@@ -25,14 +25,6 @@ public class Provider
     [MaxLength(200)]
     public string? PhotoKey { get; set; }
 
-    // Siempre WhatsApp, normalizado a +549XXXXXXXXXX. Puede repetirse.
-    [MaxLength(20)]
-    public required string PhoneNumber { get; set; }
-
-    // Sin @ y en minúsculas. Único.
-    [MaxLength(30)]
-    public string? InstagramUsername { get; set; }
-
     // Obligatoria para Business.
     [MaxLength(150)]
     public string? Address { get; set; }
@@ -46,6 +38,9 @@ public class Provider
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    // Cómo contactar a la ficha. Una fila por ficha (1 a 1).
+    public ProviderContact Contact { get; set; } = null!;
 
     public List<ProviderOffering> Offerings { get; set; } = [];
 
