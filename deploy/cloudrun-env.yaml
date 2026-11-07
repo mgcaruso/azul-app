@@ -19,5 +19,4 @@ Google__ClientId: "648987077606-q129ktjsbdfgr5kquhmaktml9nifv80p.apps.googleuser
 Cors__Origins__0: "https://azulencuentra.com.ar"
 Cors__Origins__1: "https://azul-web.azul-apps.workers.dev"
 
-# Seed__Catalog ya no hace falta: la base de producción ya tiene el catálogo.
 # Seq__ServerUrl: "<url de Seq si algún día mandás los logs ahí>"

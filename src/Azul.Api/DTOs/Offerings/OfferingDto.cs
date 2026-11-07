@@ -5,4 +5,5 @@ public class OfferingDto
     public int Id { get; set; }
     public required string Name { get; set; }
     public  int CategoryId { get; set; }
+    public List<string> Keywords { get; set; } = [];
 }

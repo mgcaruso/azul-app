@@ -7,5 +7,6 @@ public class OfferingListItemDto
 {
     public int Id { get; set; }
     public required string Name { get; set; }
+    public List<string> Keywords { get; set; } = [];
     public required CategoryRefDto Category { get; set; }
 }

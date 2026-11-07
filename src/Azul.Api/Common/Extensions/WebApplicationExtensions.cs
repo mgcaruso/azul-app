@@ -76,16 +76,11 @@ public static class WebApplicationExtensions
         return app;
     }
 
-    // Carga las categorías y servicios si la base está vacía: siempre en desarrollo y, en otros entornos, con Seed:Catalog=true.
+    // Loads the launch catalog when the database has no categories, in every environment.
     public static async Task SeedCatalogAsync(this WebApplication app)
     {
-        if (!app.Environment.IsDevelopment() && !app.Configuration.GetValue<bool>("Seed:Catalog"))
-        {
-            return;
-        }
-
         using var scope = app.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await DevSeeder.SeedAsync(dbContext);
+        await CatalogSeeder.SeedAsync(dbContext);
     }
 }

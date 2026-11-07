@@ -13,5 +13,12 @@ public class OfferingSaveDtoValidator : AbstractValidator<OfferingSaveDto>
 
         RuleFor(x => x.CategoryId)
             .NotNull().WithMessage("La categoría es obligatoria.");
+
+        RuleFor(x => x.Keywords)
+            .Must(keywords => keywords is null || keywords.Count <= 20)
+            .WithMessage("A service can have at most 20 keywords.");
+
+        RuleForEach(x => x.Keywords)
+            .MaximumLength(50).WithMessage("Each keyword can have at most 50 characters.");
     }
 }
