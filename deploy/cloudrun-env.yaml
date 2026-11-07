@@ -1,0 +1,22 @@
+# Variables de la API en Cloud Run que NO son secretas. Este archivo SÍ va a git.
+# Lo usa .github/workflows/deploy-api.yml con --env-vars-file.
+#
+# Los secretos NO van acá: están en Google Secret Manager y el workflow los
+# conecta con --set-secrets (Admin__ApiKey, ProviderConsent__PhoneHashKey,
+# ConnectionStrings__Default).
+#
+# Ojo: en cada deploy se reemplazan TODAS las variables del servicio por las de
+# este archivo. Si el código empieza a leer una configuración nueva, agregala acá
+# (o en Secret Manager si es secreta) en el mismo PR.
+
+ASPNETCORE_ENVIRONMENT: "Production"
+Photos__BaseUrl: "https://azul-api.example/photos/"
+Google__ClientId: "648987077606-q129ktjsbdfgr5kquhmaktml9nifv80p.apps.googleusercontent.com"
+
+# El navegador le habla a la API a través del Worker (mismo dominio), así que CORS
+# casi no se usa. Quedan los dos orígenes del front por las dudas.
+Cors__Origins__0: "https://azulencuentra.com.ar"
+Cors__Origins__1: "https://azul-web.azul-apps.workers.dev"
+
+# Seed__Catalog ya no hace falta: la base de producción ya tiene el catálogo.
+# Seq__ServerUrl: "<url de Seq si algún día mandás los logs ahí>"

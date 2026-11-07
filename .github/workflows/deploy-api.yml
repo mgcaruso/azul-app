@@ -1,0 +1,169 @@
+# Deploya la API en Cloud Run.
+# Se lanza a mano: Actions → "Deploy API" → Run workflow (rama main).
+#
+# Qué hace, en orden:
+#   1. Se fija si en Neon quedan migraciones sin aplicar. Si quedan, FRENA y te
+#      pide correr "Migrar base" primero (así el orden migración → API es obligatorio).
+#   2. Arma la imagen Docker y la guarda en Artifact Registry con el id del commit.
+#   3. Crea una revisión nueva en Cloud Run SIN tráfico y la prueba.
+#   4. Si la prueba anda, le pasa el 100 % del tráfico. Si no, la vieja sigue atendiendo.
+#
+# Para volver a una versión anterior: Run workflow y en "version" poné el id del
+# commit (los 40 caracteres) que querés volver a poner. No rearma nada: usa la imagen
+# que ya está guardada. Ver la guía, sección Rollback.
+name: Deploy API
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Rollback: id del commit de una imagen ya publicada (vacío = el último de main)"
+        required: false
+        default: ""
+
+# Mismo grupo que migrar-db.yml: nunca corren a la vez. El que llega segundo espera.
+concurrency:
+  group: produccion-api
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write # para Workload Identity Federation
+
+env:
+  GCP_PROJECT: azul-prueba
+  REGION: southamerica-east1
+  SERVICE: azul-api
+  RUNTIME_SA: azul-api-runtime@azul-prueba.iam.gserviceaccount.com
+  IMAGE_REPO: southamerica-east1-docker.pkg.dev/azul-prueba/azul/azul-api
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  deploy:
+    name: Deploy a Cloud Run
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Elegir versión
+        run: |
+          version="${{ inputs.version }}"
+          if [ -z "$version" ]; then
+            version="$GITHUB_SHA"
+            echo "ROLLBACK=false" >> "$GITHUB_ENV"
+          else
+            echo "ROLLBACK=true" >> "$GITHUB_ENV"
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "IMAGE=$IMAGE_REPO:$version" >> "$GITHUB_ENV"
+          echo "Versión a deployar: $version"
+
+      - name: Entrar a Google Cloud (sin claves JSON)
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      # ---------- 1. ¿Quedan migraciones pendientes? ----------
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Instalar dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version "10.*"
+
+      - name: Verificar que no queden migraciones pendientes
+        working-directory: src/Azul.Api
+        env:
+          Admin__ApiKey: no-se-usa
+          Photos__BaseUrl: http://localhost/photos/
+          Google__ClientId: no-se-usa
+        run: |
+          conn="$(gcloud secrets versions access latest --secret=azul-db-connection --project="$GCP_PROJECT")"
+          echo "::add-mask::$conn"
+          dotnet build -c Release
+
+          lista=""
+          for intento in 1 2 3; do
+            if lista="$(dotnet ef migrations list --configuration Release --no-build --connection "$conn")"; then break; fi
+            echo "Neon no respondió (intento $intento). Reintento en 10 s..."
+            sleep 10
+          done
+          echo "$lista"
+
+          if [ -z "$lista" ]; then
+            echo "::error::No pude leer las migraciones de Neon."
+            exit 1
+          fi
+          if echo "$lista" | grep -q "(Pending)"; then
+            echo "::error::Hay migraciones sin aplicar en Neon. Corré primero el workflow 'Migrar base' y después volvé a lanzar este."
+            exit 1
+          fi
+
+      # ---------- 2. Imagen ----------
+      - name: Login en Artifact Registry
+        run: gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+
+      - name: Armar y subir la imagen
+        if: env.ROLLBACK == 'false'
+        run: |
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Comprobar que la imagen del rollback existe
+        if: env.ROLLBACK == 'true'
+        run: gcloud artifacts docker images describe "$IMAGE" --project="$GCP_PROJECT"
+
+      # ---------- 3. Revisión nueva sin tráfico ----------
+      # --env-vars-file: variables comunes (deploy/cloudrun-env.yaml, en git).
+      # --set-secrets: secretos de Secret Manager. Cloud Run los lee al arrancar.
+      # --no-traffic + --tag candidata: la revisión queda en una URL aparte para probarla.
+      - name: Crear revisión nueva (sin tráfico)
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --project="$GCP_PROJECT" \
+            --region="$REGION" \
+            --image="$IMAGE" \
+            --service-account="$RUNTIME_SA" \
+            --max-instances=1 \
+            --memory=512Mi \
+            --cpu-boost \
+            --env-vars-file=deploy/cloudrun-env.yaml \
+            --set-secrets="Admin__ApiKey=azul-admin-api-key:latest,ProviderConsent__PhoneHashKey=azul-phone-hash-key:latest,ConnectionStrings__Default=azul-db-connection:latest" \
+            --labels="commit=${VERSION:0:12}" \
+            --no-traffic \
+            --tag=candidata \
+            --quiet
+
+      - name: Probar la revisión nueva
+        run: |
+          url="$(gcloud run services describe "$SERVICE" --project="$GCP_PROJECT" --region="$REGION" --format=json \
+                 | jq -r '.status.traffic[] | select(.tag=="candidata") | .url')"
+          echo "Probando $url/api/categories"
+          # Reintenta: la primera respuesta puede tardar (arranque en frío + Neon dormido).
+          curl --fail --silent --show-error --retry 6 --retry-delay 10 --retry-all-errors \
+               --max-time 30 "$url/api/categories" > /dev/null
+          echo "La revisión nueva responde bien."
+
+      # ---------- 4. Pasar el tráfico ----------
+      - name: Pasarle el 100 % del tráfico
+        run: gcloud run services update-traffic "$SERVICE" --project="$GCP_PROJECT" --region="$REGION" --to-latest --quiet
+
+      - name: Resumen
+        run: |
+          revision="$(gcloud run services describe "$SERVICE" --project="$GCP_PROJECT" --region="$REGION" --format='value(status.latestReadyRevisionName)')"
+          {
+            echo "### API deployada ✅"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Commit | \`$VERSION\` |"
+            echo "| Revisión | \`$revision\` |"
+            echo "| Rollback | $ROLLBACK |"
+          } >> "$GITHUB_STEP_SUMMARY"
