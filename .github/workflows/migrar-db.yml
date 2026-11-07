@@ -17,7 +17,7 @@ permissions:
   id-token: write # para pedirle a Google un token temporal (Workload Identity Federation)
 
 env:
-  GCP_PROJECT: azul-prueba
+  GCP_PROJECT: azul-encuentra
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   # dotnet ef arranca Program.cs hasta Build(): estas configuraciones son obligatorias

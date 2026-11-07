@@ -31,11 +31,11 @@ permissions:
   id-token: write # para Workload Identity Federation
 
 env:
-  GCP_PROJECT: azul-prueba
+  GCP_PROJECT: azul-encuentra
   REGION: southamerica-east1
   SERVICE: azul-api
-  RUNTIME_SA: azul-api-runtime@azul-prueba.iam.gserviceaccount.com
-  IMAGE_REPO: southamerica-east1-docker.pkg.dev/azul-prueba/azul/azul-api
+  RUNTIME_SA: azul-api-runtime@azul-encuentra.iam.gserviceaccount.com
+  IMAGE_REPO: southamerica-east1-docker.pkg.dev/azul-encuentra/azul/azul-api
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
