@@ -86,7 +86,7 @@ Photos__BaseUrl: "https://azul-api.example/photos/"
 Cors__Origins__0: "<URL del front>"
 ```
 
-Opcionales: `Seed__Catalog: "true"` (carga el catálogo si la base está vacía; solo hace falta en el primer arranque) y `Seq__ServerUrl` (manda los logs a Seq).
+Opcionales: `Seq__ServerUrl` (manda los logs a Seq).
 
 ---
 

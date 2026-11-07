@@ -13,7 +13,7 @@ namespace Azul.Api.Services.Offerings;
 public class OfferingService(AppDbContext dbContext) : IOfferingService
 {
     private static readonly Expression<Func<Offering, OfferingDto>> ToDto =
-        o => new OfferingDto { Id = o.Id, Name = o.Name, CategoryId = o.CategoryId };
+        o => new OfferingDto { Id = o.Id, Name = o.Name, CategoryId = o.CategoryId, Keywords = o.Keywords };
 
     private static readonly Expression<Func<Offering, OfferingSummaryDto>> ToSummaryDto =
         o => new OfferingSummaryDto { Id = o.Id, Name = o.Name };
@@ -23,6 +23,7 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
         {
             Id = o.Id,
             Name = o.Name,
+            Keywords = o.Keywords,
             Category = new CategoryRefDto { Id = o.Category.Id, Name = o.Category.Name }
         };
 
@@ -46,7 +47,9 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
         if (!string.IsNullOrWhiteSpace(text))
         {
             var pattern = LikePattern.Contains(text);
-            offerings = offerings.Where(o => SearchText.Matches(o.Name, pattern));
+            offerings = offerings.Where(o =>
+                SearchText.Matches(o.Name, pattern)
+                || o.Keywords.Any(keyword => SearchText.Matches(keyword, pattern)));
         }
 
         return await offerings
@@ -107,7 +110,8 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
         var offering = new Offering
         {
             Name = name,
-            CategoryId = categoryId
+            CategoryId = categoryId,
+            Keywords = NormalizeKeywords(offeringSaveDto.Keywords)
         };
         dbContext.Add(offering);
         await dbContext.SaveChangesAsync();
@@ -116,7 +120,8 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
         {
             Id = offering.Id,
             Name = offering.Name,
-            CategoryId = offering.CategoryId
+            CategoryId = offering.CategoryId,
+            Keywords = offering.Keywords
         };
     }
 
@@ -140,6 +145,10 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
 
         offering.Name = name;
         offering.CategoryId = categoryId;
+        if (offeringSaveDto.Keywords is not null)
+        {
+            offering.Keywords = NormalizeKeywords(offeringSaveDto.Keywords);
+        }
 
         await dbContext.SaveChangesAsync();
     }
@@ -160,6 +169,16 @@ public class OfferingService(AppDbContext dbContext) : IOfferingService
         {
             throw new NotFoundException("offering", id);
         }
+    }
+
+    // Trims, drops empty entries and removes case-insensitive duplicates (keeps the first spelling).
+    private static List<string> NormalizeKeywords(IEnumerable<string>? keywords)
+    {
+        return (keywords ?? [])
+            .Where(keyword => !string.IsNullOrWhiteSpace(keyword))
+            .Select(keyword => keyword.Trim())
+            .DistinctBy(keyword => keyword.ToLowerInvariant())
+            .ToList();
     }
 
     private Task<bool> NameExists(string name, int categoryId, int? excludeId = null)

@@ -1,0 +1,769 @@
+{
+  "categories": [
+    {
+      "name": "Gastronomía",
+      "offerings": [
+        {
+          "name": "Viandas y comida casera",
+          "keywords": [
+            "comida por encargo",
+            "empanadas",
+            "sin TACC"
+          ]
+        },
+        {
+          "name": "Tortas y repostería",
+          "keywords": [
+            "tortas de cumpleaños",
+            "mesa dulce",
+            "pastelería"
+          ]
+        },
+        {
+          "name": "Catering y comida para eventos",
+          "keywords": [
+            "sándwiches de miga"
+          ]
+        },
+        {
+          "name": "Cocinero a domicilio",
+          "keywords": [
+            "chef",
+            "asador",
+            "parrillero"
+          ]
+        },
+        {
+          "name": "Mozos y barra de tragos",
+          "keywords": [
+            "bartender",
+            "barra móvil"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Salud y bienestar",
+      "offerings": [
+        {
+          "name": "Psicología",
+          "keywords": [
+            "psicólogo",
+            "psicóloga",
+            "terapia"
+          ]
+        },
+        {
+          "name": "Psicología social",
+          "keywords": [
+            "psicólogo social",
+            "psicóloga social"
+          ]
+        },
+        {
+          "name": "Sexología",
+          "keywords": [
+            "sexólogo",
+            "sexóloga"
+          ]
+        },
+        {
+          "name": "Psicopedagogía",
+          "keywords": [
+            "psicopedagoga",
+            "psicopedagogo"
+          ]
+        },
+        {
+          "name": "Terapia ocupacional",
+          "keywords": [
+            "terapista ocupacional"
+          ]
+        },
+        {
+          "name": "Fonoaudiología",
+          "keywords": [
+            "fonoaudióloga",
+            "fonoaudiólogo"
+          ]
+        },
+        {
+          "name": "Acompañante terapéutico",
+          "keywords": [
+            "AT"
+          ]
+        },
+        {
+          "name": "Odontología",
+          "keywords": [
+            "dentista",
+            "odontólogo",
+            "odontóloga"
+          ]
+        },
+        {
+          "name": "Kinesiología",
+          "keywords": [
+            "kinesiólogo",
+            "kinesióloga"
+          ]
+        },
+        {
+          "name": "Nutrición",
+          "keywords": [
+            "nutricionista"
+          ]
+        },
+        {
+          "name": "Podología",
+          "keywords": [
+            "podólogo",
+            "podóloga"
+          ]
+        },
+        {
+          "name": "Enfermería y cuidado de adultos mayores",
+          "keywords": [
+            "enfermera",
+            "cuidadora"
+          ]
+        },
+        {
+          "name": "Niñera",
+          "keywords": [
+            "babysitter",
+            "cuidado de niños"
+          ]
+        },
+        {
+          "name": "Masajes",
+          "keywords": [
+            "masajista"
+          ]
+        },
+        {
+          "name": "Pilates",
+          "keywords": [
+            "reformer"
+          ]
+        },
+        {
+          "name": "Yoga",
+          "keywords": [
+            "meditación"
+          ]
+        },
+        {
+          "name": "Gimnasio y entrenamiento",
+          "keywords": [
+            "entrenador personal",
+            "funcional"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Belleza",
+      "offerings": [
+        {
+          "name": "Peluquería y barbería",
+          "keywords": [
+            "peluquero",
+            "peluquera",
+            "barbero"
+          ]
+        },
+        {
+          "name": "Uñas",
+          "keywords": [
+            "manicura",
+            "manicuría",
+            "kapping"
+          ]
+        },
+        {
+          "name": "Cejas y pestañas",
+          "keywords": [
+            "lifting",
+            "perfilado de cejas"
+          ]
+        },
+        {
+          "name": "Maquillaje",
+          "keywords": [
+            "maquilladora"
+          ]
+        },
+        {
+          "name": "Depilación",
+          "keywords": [
+            "depilación láser"
+          ]
+        },
+        {
+          "name": "Cosmetología y tratamientos faciales",
+          "keywords": [
+            "cosmetóloga",
+            "cosmiatra",
+            "limpieza facial"
+          ]
+        },
+        {
+          "name": "Tatuajes y piercing",
+          "keywords": [
+            "tatuador",
+            "tattoo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tecnología",
+      "offerings": [
+        {
+          "name": "Reparación de celulares",
+          "keywords": [
+            "cambio de pantalla"
+          ]
+        },
+        {
+          "name": "Reparación de notebooks y PC",
+          "keywords": [
+            "computadora",
+            "técnico de PC"
+          ]
+        },
+        {
+          "name": "Instalación de cámaras y redes",
+          "keywords": [
+            "cámaras de seguridad",
+            "wifi",
+            "alarmas"
+          ]
+        },
+        {
+          "name": "Desarrollo web y software",
+          "keywords": [
+            "programador",
+            "página web"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Eventos",
+      "offerings": [
+        {
+          "name": "Alquiler de salón o quinta",
+          "keywords": [
+            "salón de eventos",
+            "quincho"
+          ]
+        },
+        {
+          "name": "Alquiler para eventos",
+          "keywords": [
+            "vajilla",
+            "inflables",
+            "disfraces"
+          ]
+        },
+        {
+          "name": "DJ y animación",
+          "keywords": [
+            "animador",
+            "animación infantil",
+            "magia"
+          ]
+        },
+        {
+          "name": "Fotografía y video",
+          "keywords": [
+            "fotógrafo",
+            "fotógrafa"
+          ]
+        },
+        {
+          "name": "Decoración de eventos",
+          "keywords": [
+            "ambientación",
+            "globos"
+          ]
+        },
+        {
+          "name": "Sonido e iluminación",
+          "keywords": [
+            "equipos de sonido",
+            "luces"
+          ]
+        },
+        {
+          "name": "Regalos personalizados y souvenirs",
+          "keywords": [
+            "sublimación",
+            "regalos empresariales"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Arte y cultura",
+      "offerings": [
+        {
+          "name": "Música",
+          "keywords": [
+            "guitarra",
+            "piano",
+            "canto"
+          ]
+        },
+        {
+          "name": "Danza",
+          "keywords": [
+            "baile",
+            "folklore"
+          ]
+        },
+        {
+          "name": "Teatro",
+          "keywords": [
+            "actuación"
+          ]
+        },
+        {
+          "name": "Dibujo y pintura",
+          "keywords": [
+            "arte"
+          ]
+        },
+        {
+          "name": "Cerámica y manualidades",
+          "keywords": [
+            "alfarería",
+            "taller"
+          ]
+        },
+        {
+          "name": "Telas y acrobacia",
+          "keywords": [
+            "telas aéreas"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Educación",
+      "offerings": [
+        {
+          "name": "Apoyo escolar y profesores particulares",
+          "keywords": [
+            "clases particulares",
+            "profesor particular",
+            "matemática"
+          ]
+        },
+        {
+          "name": "Idiomas",
+          "keywords": [
+            "inglés",
+            "profesora de inglés"
+          ]
+        },
+        {
+          "name": "Computación",
+          "keywords": [
+            "curso de computación",
+            "Excel"
+          ]
+        },
+        {
+          "name": "Clases de manejo",
+          "keywords": [
+            "escuela de manejo",
+            "aprender a manejar"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mascotas",
+      "offerings": [
+        {
+          "name": "Veterinaria",
+          "keywords": [
+            "veterinario",
+            "veterinaria a domicilio"
+          ]
+        },
+        {
+          "name": "Peluquería canina",
+          "keywords": [
+            "baño de perros"
+          ]
+        },
+        {
+          "name": "Paseo y guardería de mascotas",
+          "keywords": [
+            "paseador de perros",
+            "guardería de perros"
+          ]
+        },
+        {
+          "name": "Adiestramiento",
+          "keywords": [
+            "adiestrador",
+            "educación canina"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Hogar y reparaciones",
+      "offerings": [
+        {
+          "name": "Arreglos generales del hogar",
+          "keywords": [
+            "arreglos",
+            "mantenimiento"
+          ]
+        },
+        {
+          "name": "Plomería",
+          "keywords": [
+            "plomero",
+            "destapaciones",
+            "pérdida de agua"
+          ]
+        },
+        {
+          "name": "Gasista",
+          "keywords": [
+            "gas",
+            "estufa",
+            "calefón"
+          ]
+        },
+        {
+          "name": "Electricista",
+          "keywords": [
+            "electricidad"
+          ]
+        },
+        {
+          "name": "Cerrajería",
+          "keywords": [
+            "cerrajero",
+            "llaves"
+          ]
+        },
+        {
+          "name": "Pintura",
+          "keywords": [
+            "pintor"
+          ]
+        },
+        {
+          "name": "Albañilería y construcción",
+          "keywords": [
+            "albañil",
+            "durlock",
+            "techos"
+          ]
+        },
+        {
+          "name": "Herrería",
+          "keywords": [
+            "herrero",
+            "rejas"
+          ]
+        },
+        {
+          "name": "Carpintería",
+          "keywords": [
+            "carpintero",
+            "muebles a medida"
+          ]
+        },
+        {
+          "name": "Reparación de electrodomésticos",
+          "keywords": [
+            "técnico",
+            "lavarropas",
+            "heladera"
+          ]
+        },
+        {
+          "name": "Aire acondicionado y calefacción",
+          "keywords": [
+            "aire acondicionado",
+            "split"
+          ]
+        },
+        {
+          "name": "Vidriería y espejos",
+          "keywords": [
+            "vidriero",
+            "vidrios"
+          ]
+        },
+        {
+          "name": "Pisos y revestimientos",
+          "keywords": [
+            "colocador",
+            "cerámicos",
+            "porcelanato"
+          ]
+        },
+        {
+          "name": "Tapicería",
+          "keywords": [
+            "tapicero"
+          ]
+        },
+        {
+          "name": "Armado de muebles",
+          "keywords": [
+            "armador de muebles"
+          ]
+        },
+        {
+          "name": "Jardinería y paisajismo",
+          "keywords": [
+            "jardinero",
+            "corte de pasto"
+          ]
+        },
+        {
+          "name": "Poda de árboles",
+          "keywords": [
+            "tala",
+            "extracción de árboles"
+          ]
+        },
+        {
+          "name": "Mantenimiento de piletas",
+          "keywords": [
+            "pileta",
+            "piletero"
+          ]
+        },
+        {
+          "name": "Fumigación",
+          "keywords": [
+            "plagas",
+            "fumigador"
+          ]
+        },
+        {
+          "name": "Desagote y camión atmosférico",
+          "keywords": [
+            "pozo ciego"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Limpieza",
+      "offerings": [
+        {
+          "name": "Limpieza de hogares y oficinas",
+          "keywords": [
+            "empleada doméstica",
+            "limpieza por hora"
+          ]
+        },
+        {
+          "name": "Limpieza especial",
+          "keywords": [
+            "limpieza de tapizados",
+            "limpieza de tanques",
+            "final de obra"
+          ]
+        },
+        {
+          "name": "Lavandería",
+          "keywords": [
+            "lavadero de ropa",
+            "planchado"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Autos y motos",
+      "offerings": [
+        {
+          "name": "Mecánica",
+          "keywords": [
+            "mecánico",
+            "taller mecánico"
+          ]
+        },
+        {
+          "name": "Gomería",
+          "keywords": [
+            "gomero",
+            "cubiertas"
+          ]
+        },
+        {
+          "name": "Chapa y pintura",
+          "keywords": [
+            "chapista"
+          ]
+        },
+        {
+          "name": "Electricidad del automotor",
+          "keywords": [
+            "electricista del auto"
+          ]
+        },
+        {
+          "name": "Lavado y estética del auto",
+          "keywords": [
+            "lavadero de autos",
+            "polarizado"
+          ]
+        },
+        {
+          "name": "Auxilio mecánico",
+          "keywords": [
+            "grúa",
+            "remolque"
+          ]
+        },
+        {
+          "name": "Mecánica de motos",
+          "keywords": [
+            "mecánico de motos"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Servicios profesionales",
+      "offerings": [
+        {
+          "name": "Abogacía",
+          "keywords": [
+            "abogado",
+            "abogada"
+          ]
+        },
+        {
+          "name": "Contaduría e impuestos",
+          "keywords": [
+            "contador",
+            "contadora",
+            "monotributo"
+          ]
+        },
+        {
+          "name": "Escribanía",
+          "keywords": [
+            "escribano",
+            "escribana"
+          ]
+        },
+        {
+          "name": "Gestoría y trámites",
+          "keywords": [
+            "gestor",
+            "gestoría del automotor"
+          ]
+        },
+        {
+          "name": "Inmobiliaria y tasaciones",
+          "keywords": [
+            "inmobiliaria",
+            "tasador",
+            "martillero"
+          ]
+        },
+        {
+          "name": "Seguros",
+          "keywords": [
+            "productor de seguros",
+            "seguro del auto"
+          ]
+        },
+        {
+          "name": "Arquitectura y planos",
+          "keywords": [
+            "arquitecto",
+            "arquitecta",
+            "maestro mayor de obras"
+          ]
+        },
+        {
+          "name": "Traducciones",
+          "keywords": [
+            "traductor",
+            "traductora"
+          ]
+        },
+        {
+          "name": "Diseño gráfico y marketing",
+          "keywords": [
+            "diseñador",
+            "diseñadora",
+            "logo",
+            "community manager"
+          ]
+        },
+        {
+          "name": "Imprenta y cartelería",
+          "keywords": [
+            "impresiones",
+            "fotocopias",
+            "carteles"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Fletes y mandados",
+      "offerings": [
+        {
+          "name": "Fletes y mudanzas",
+          "keywords": [
+            "fletero",
+            "mudanza"
+          ]
+        },
+        {
+          "name": "Cadetería y mandados",
+          "keywords": [
+            "cadete",
+            "mensajería"
+          ]
+        },
+        {
+          "name": "Transporte escolar",
+          "keywords": [
+            "traffic escolar",
+            "combi"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Otros servicios",
+      "offerings": [
+        {
+          "name": "Reparación de instrumentos musicales",
+          "keywords": [
+            "luthier"
+          ]
+        },
+        {
+          "name": "Costura y arreglos de ropa",
+          "keywords": [
+            "modista",
+            "costurera"
+          ]
+        }
+      ]
+    }
+  ]
+}

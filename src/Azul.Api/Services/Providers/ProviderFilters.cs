@@ -33,7 +33,9 @@ public static class ProviderFilters
             providers = providers.Where(p =>
                 SearchText.Matches(p.DisplayName, pattern)
                 || SearchText.Matches(p.Description, pattern)
-                || p.Offerings.Any(po => SearchText.Matches(po.Offering.Name, pattern)));
+                || p.Offerings.Any(po =>
+                    SearchText.Matches(po.Offering.Name, pattern)
+                    || po.Offering.Keywords.Any(keyword => SearchText.Matches(keyword, pattern))));
         }
 
         return providers;
