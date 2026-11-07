@@ -1,0 +1,78 @@
+# CI de la API: corre en cada PR contra main (y en cada push a main).
+# Compila, corre los tests contra un Postgres temporal y avisa si cambiaste
+# el modelo de EF sin crear la migración. No toca producción ni usa secretos.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Si subís otro commit al mismo PR, cancela la corrida vieja (no sirve terminarla).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-y-tests:
+    name: Build y tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Un Postgres igual al de docker-compose, solo para esta corrida. Se borra al terminar.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: azul
+          POSTGRES_PASSWORD: azul_dev
+          POSTGRES_DB: azul
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U azul"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Los tests leen esta variable (ver AuthApiFactory). En tu PC usan el puerto 5433.
+      AZUL_TEST_DB: Host=localhost;Port=5432;Database=azul_tests;Username=azul;Password=azul_dev
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: "**/*.csproj"
+
+      - name: Restaurar paquetes
+        run: dotnet restore Azul.slnx
+
+      - name: Compilar
+        run: dotnet build Azul.slnx -c Release --no-restore
+
+      - name: Tests
+        run: dotnet test Azul.slnx -c Release --no-build --logger "console;verbosity=normal"
+
+      # Falla si el modelo (entidades/configuraciones) cambió y no hay migración nueva.
+      # dotnet ef arranca Program.cs hasta Build(), por eso necesita estas tres
+      # configuraciones obligatorias; los valores son de mentira y no se usan.
+      - name: Instalar dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version "10.*"
+
+      - name: ¿Falta alguna migración?
+        working-directory: src/Azul.Api
+        env:
+          Admin__ApiKey: no-se-usa
+          Photos__BaseUrl: http://localhost/photos/
+          Google__ClientId: no-se-usa
+        run: dotnet ef migrations has-pending-model-changes --configuration Release --no-build

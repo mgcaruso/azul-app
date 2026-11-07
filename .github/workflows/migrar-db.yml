@@ -1,0 +1,81 @@
+# Aplica las migraciones de EF Core en la base de producción (Neon).
+# Se lanza a mano: Actions → "Migrar base" → Run workflow (rama main).
+# Correr esto ES tu aprobación de la migración. Hacelo ANTES de "Deploy API".
+name: Migrar base
+
+on:
+  workflow_dispatch:
+
+# Mismo grupo que deploy-api.yml: nunca corren a la vez una migración y un deploy.
+# Si lanzás otro mientras uno corre, el nuevo espera en la cola.
+concurrency:
+  group: produccion-api
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write # para pedirle a Google un token temporal (Workload Identity Federation)
+
+env:
+  GCP_PROJECT: azul-prueba
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  # dotnet ef arranca Program.cs hasta Build(): estas configuraciones son obligatorias
+  # pero acá no se usan. La cadena de conexión real se pasa con --connection.
+  Admin__ApiKey: no-se-usa
+  Photos__BaseUrl: http://localhost/photos/
+  Google__ClientId: no-se-usa
+
+jobs:
+  migrar:
+    name: Aplicar migraciones en Neon
+    # Solo desde main: si alguien elige otra rama en el botón, no corre.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Compilar
+        run: dotnet build src/Azul.Api/Azul.Api.csproj -c Release
+
+      - name: Instalar dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version "10.*"
+
+      - name: Entrar a Google Cloud (sin claves JSON)
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      # Lee la cadena de Neon de Secret Manager y la "enmascara": si llega a aparecer
+      # en el log, GitHub la muestra como ***.
+      - name: Leer la cadena de conexión
+        run: |
+          conn="$(gcloud secrets versions access latest --secret=azul-db-connection --project="$GCP_PROJECT")"
+          echo "::add-mask::$conn"
+          echo "DB_CONNECTION=$conn" >> "$GITHUB_ENV"
+
+      - name: Migraciones antes de aplicar
+        working-directory: src/Azul.Api
+        run: |
+          # Neon se duerme a los 5 minutos: si la primera conexión falla, reintenta.
+          for intento in 1 2 3; do
+            dotnet ef migrations list --configuration Release --no-build --connection "$DB_CONNECTION" && break
+            echo "Neon no respondió (intento $intento). Reintento en 10 s..."
+            sleep 10
+          done
+
+      - name: Aplicar migraciones
+        working-directory: src/Azul.Api
+        run: dotnet ef database update --configuration Release --no-build --connection "$DB_CONNECTION"
+
+      - name: Resumen
+        run: echo "### Migraciones aplicadas en Neon ✅ Ahora podés correr **Deploy API**." >> "$GITHUB_STEP_SUMMARY"
