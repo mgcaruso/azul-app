@@ -14,25 +14,8 @@ public class ProviderWriteService(
     IConfiguration configuration,
     ILogger<ProviderWriteService> logger) : IProviderWriteService
 {
-    private const string InstagramUniqueIndex = "IX_Providers_InstagramUsername";
+    private const string InstagramUniqueIndex = "IX_ProviderContacts_InstagramUsername";
     private const string UserIdUniqueIndex = "IX_Providers_UserId";
-    private const int MaxProvidersPerPhone = 5;
-
-    private async Task EnsurePhoneUnderLimit(string? phoneNumber)
-    {
-        if (string.IsNullOrEmpty(phoneNumber))
-        {
-            return;
-        }
-        var providersDb = await dbContext.Providers.Where(p => p.PhoneNumber == phoneNumber).Take(MaxProvidersPerPhone).CountAsync();
-        
-        if (providersDb >= MaxProvidersPerPhone)
-        {
-            throw new ConflictException("phone_limit_reached", "Este celular ya tiene el máximo de fichas.",
-                "phoneNumber");
-        }
-        
-    }
     // En la base va la key; al front se le devuelve la URL armada con la dirección base.
     private readonly string photoBaseUrl = configuration["Photos:BaseUrl"]
         ?? throw new InvalidOperationException("Falta la configuración Photos:BaseUrl.");
@@ -47,13 +30,12 @@ public class ProviderWriteService(
         await EnsureHasNoProvider(userId);
         await EnsureOfferingsExist(offeringIds);
         await EnsureInstagramIsFree(providerSaveDto.InstagramUsername);
-        await EnsurePhoneUnderLimit(providerSaveDto.PhoneNumber);
-        
+
         var now = DateTime.UtcNow;
         var provider = new Provider
         {
             DisplayName = string.Empty,
-            PhoneNumber = string.Empty,
+            Contact = new ProviderContact(),
             Status = ProviderStatus.Pending,
             CreatedAt = now,
             UpdatedAt = now,
@@ -65,7 +47,8 @@ public class ProviderWriteService(
         // Se guarda junto con el Provider: un solo SaveChanges, una sola transacción.
         provider.Consents.Add(new ProviderConsent
         {
-            PhoneHash = phoneHasher.Hash(provider.PhoneNumber),
+            // Se firma con el teléfono que tenga: el WhatsApp o, si solo cargó fijo, el fijo.
+            PhoneHash = phoneHasher.Hash(provider.Contact.PhoneNumber ?? provider.Contact.CallPhone!),
             AcceptedAt = now
         });
 
@@ -85,16 +68,13 @@ public class ProviderWriteService(
 
         var provider = await dbContext.Providers
                            .Include(p => p.Offerings)
+                           .Include(p => p.Contact)
                            .FirstOrDefaultAsync(p => p.Id == id)
                        ?? throw new NotFoundException("provider", id);
 
         var offeringIds = providerSaveDto.OfferingIds.Distinct().ToList();
         await EnsureOfferingsExist(offeringIds);
         await EnsureInstagramIsFree(providerSaveDto.InstagramUsername, excludeId: id);
-        if (providerSaveDto.PhoneNumber != provider.PhoneNumber)
-        {
-            await EnsurePhoneUnderLimit(providerSaveDto.PhoneNumber);
-        }
 
         var now = DateTime.UtcNow;
         ApplyFields(provider, providerSaveDto);
@@ -213,8 +193,10 @@ public class ProviderWriteService(
         provider.DisplayName = isIndividual ? $"{dto.FirstName} {dto.LastName}" : dto.DisplayName!;
         provider.Description = dto.Description;
         provider.PhotoKey = dto.PhotoKey;
-        provider.PhoneNumber = dto.PhoneNumber!;
-        provider.InstagramUsername = dto.InstagramUsername;
+        provider.Contact.PhoneNumber = dto.PhoneNumber;
+        provider.Contact.CallPhone = dto.CallPhone;
+        provider.Contact.InstagramUsername = dto.InstagramUsername;
+        provider.Contact.ExtraUrl = dto.ExtraUrl;
         provider.Address = dto.Address;
         provider.Hours = dto.Hours;
     }
@@ -226,7 +208,7 @@ public class ProviderWriteService(
             return;
         }
 
-        if (await dbContext.Providers.AnyAsync(p => p.Id != excludeId && p.InstagramUsername == instagramUsername))
+        if (await dbContext.ProviderContacts.AnyAsync(c => c.ProviderId != excludeId && c.InstagramUsername == instagramUsername))
         {
             throw DuplicateInstagram();
         }

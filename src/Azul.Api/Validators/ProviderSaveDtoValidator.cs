@@ -10,7 +10,10 @@ namespace Azul.Api.Validators;
 public partial class ProviderSaveDtoValidator : AbstractValidator<ProviderSaveDto>
 {
     [GeneratedRegex(@"[\p{So}\p{Cs}]")] private static partial Regex EmojiRegex();
-    [GeneratedRegex(@"^\+549\d{10}$")] private static partial Regex PhoneRegex();
+    // Formato internacional (E.164). Argentina es más estricta: WhatsApp +549 y 10 dígitos; fijo +54 y 10 dígitos sin empezar con 9.
+    [GeneratedRegex(@"^\+[1-9]\d{7,14}$")] private static partial Regex InternationalPhoneRegex();
+    [GeneratedRegex(@"^\+549\d{10}$")] private static partial Regex ArgentineMobileRegex();
+    [GeneratedRegex(@"^\+54[1-8]\d{9}$")] private static partial Regex ArgentineLandlineRegex();
     [GeneratedRegex(@"^[a-z0-9._]+$")] private static partial Regex InstagramRegex();
 
     public ProviderSaveDtoValidator()
@@ -54,9 +57,28 @@ public partial class ProviderSaveDtoValidator : AbstractValidator<ProviderSaveDt
         RuleFor(x => x.Description).MaximumLength(500).WithMessage("La descripción no puede superar los 500 caracteres.");
         RuleFor(x => x.PhotoKey).MaximumLength(200).WithMessage("La foto no puede superar los 200 caracteres.");
 
+        // Hace falta al menos un teléfono: WhatsApp o fijo.
         RuleFor(x => x.PhoneNumber)
-            .NotEmpty().WithMessage("El celular es obligatorio.")
-            .Matches(PhoneRegex()).WithMessage("El celular tiene que ser un número argentino, por ejemplo 2281 40-1234.");
+            .NotEmpty().WithMessage("Cargá un WhatsApp o un teléfono fijo.")
+            .When(x => string.IsNullOrEmpty(x.CallPhone));
+
+        RuleFor(x => x.PhoneNumber)
+            .Matches(InternationalPhoneRegex()).WithMessage("El WhatsApp tiene que empezar con + y el código de país, por ejemplo +54 9 2281 40-1234.")
+            .Must(p => !p!.StartsWith("+54") || ArgentineMobileRegex().IsMatch(p))
+            .WithMessage("Un WhatsApp argentino tiene que ser +54 9, el código de área sin 0 y el número sin 15, por ejemplo +54 9 2281 40-1234.")
+            .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
+
+        RuleFor(x => x.CallPhone)
+            .Matches(InternationalPhoneRegex()).WithMessage("El teléfono fijo tiene que empezar con + y el código de país, por ejemplo +54 2281 45-6789.")
+            .Must(p => !p!.StartsWith("+54") || ArgentineLandlineRegex().IsMatch(p))
+            .WithMessage("Un teléfono fijo argentino tiene que ser +54, el código de área sin 0 y el número, por ejemplo +54 2281 45-6789.")
+            .When(x => !string.IsNullOrEmpty(x.CallPhone));
+
+        RuleFor(x => x.ExtraUrl)
+            .MaximumLength(200).WithMessage("El enlace no puede superar los 200 caracteres.")
+            .Must(u => Uri.TryCreate(u, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https")
+            .WithMessage("El enlace tiene que empezar con http:// o https://.")
+            .When(x => !string.IsNullOrEmpty(x.ExtraUrl));
 
         RuleFor(x => x.InstagramUsername)
             .MaximumLength(30).WithMessage("El usuario de Instagram no puede superar los 30 caracteres.")
@@ -71,7 +93,7 @@ public partial class ProviderSaveDtoValidator : AbstractValidator<ProviderSaveDt
             .Must(ids => ids.Distinct().Count() == ids.Count).WithMessage("Hay servicios repetidos.");
     }
 
-    // Normaliza antes de validar (celular a +549…, Instagram sin @ y en minúsculas, Trim()),
+    // Limpia antes de validar (teléfonos sin espacios ni guiones, Instagram sin @ y en minúsculas, Trim()),
     // así las reglas ven lo mismo que después se guarda.
     protected override bool PreValidate(ValidationContext<ProviderSaveDto> context, ValidationResult result)
     {

@@ -34,11 +34,18 @@ public class ProviderReadService(AppDbContext dbContext, IConfiguration configur
     public async Task<List<DuplicateGroupDto>> GetDuplicateGroupsAsync()
     {
         var candidatesDb = await dbContext.Providers.Where(p => dbContext.Providers.Any(p2 => p2.Id != p.Id &&
-                (p2.DisplayName.ToLower() == p.DisplayName.ToLower() || p.PhoneNumber == p2.PhoneNumber)))
-            .Select(p => new {p.Id, p.DisplayName, p.PhoneNumber, p.Status, p.CreatedAt}).ToListAsync();
+                (p2.DisplayName.ToLower() == p.DisplayName.ToLower()
+                 || (p.Contact.PhoneNumber != null && p.Contact.PhoneNumber == p2.Contact.PhoneNumber)
+                 || (p.Contact.CallPhone != null && p.Contact.CallPhone == p2.Contact.CallPhone))))
+            .Select(p => new {p.Id, p.DisplayName, p.Contact.PhoneNumber, p.Contact.CallPhone, p.Status, p.CreatedAt}).ToListAsync();
         logger.LogInformation("Duplicados: {Count} candidatos, Ids={Ids}", candidatesDb.Count, candidatesDb.Select(c => c.Id));
+        // Un mismo teléfono cuenta igual si está cargado como WhatsApp o como fijo.
         var phoneGroups = candidatesDb
-            .GroupBy(p => p.PhoneNumber)
+            .SelectMany(p => new[] { p.PhoneNumber, p.CallPhone }
+                .Where(n => n is not null)
+                .Distinct()
+                .Select(n => (Phone: n!, Provider: p)))
+            .GroupBy(x => x.Phone, x => x.Provider)
             .Where(g => g.Count() > 1)
             .ToList();
         var nameGroups = candidatesDb

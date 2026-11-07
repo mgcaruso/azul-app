@@ -177,18 +177,9 @@ namespace Azul.Api.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<string>("InstagramUsername")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
                     b.Property<string>("LastName")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("PhotoKey")
                         .HasMaxLength(200)
@@ -218,12 +209,6 @@ namespace Azul.Api.Migrations
                         .IsDescending()
                         .HasFilter("\"Status\" = 'Published'");
 
-                    b.HasIndex("InstagramUsername")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Providers_InstagramUsername");
-
-                    b.HasIndex("PhoneNumber");
-
                     b.HasIndex("UserId")
                         .IsUnique()
                         .HasFilter("\"UserId\" IS NOT NULL");
@@ -236,13 +221,9 @@ namespace Azul.Api.Migrations
 
                             t.HasCheckConstraint("CK_Providers_FirstPublishedAt", "\"Status\" <> 'Published' OR \"FirstPublishedAt\" IS NOT NULL");
 
-                            t.HasCheckConstraint("CK_Providers_InstagramUsername_Lower", "\"InstagramUsername\" IS NULL OR \"InstagramUsername\" = lower(\"InstagramUsername\")");
-
                             t.HasCheckConstraint("CK_Providers_Name_OnlyIndividual", "\"Type\" = 'Individual' OR (\"FirstName\" IS NULL AND \"LastName\" IS NULL)");
 
                             t.HasCheckConstraint("CK_Providers_Name_RequiredIndividual", "\"Type\" <> 'Individual' OR (\"FirstName\" IS NOT NULL AND \"LastName\" IS NOT NULL)");
-
-                            t.HasCheckConstraint("CK_Providers_PhoneNumber", "\"PhoneNumber\" ~ '^\\+549\\d{10}$'");
 
                             t.HasCheckConstraint("CK_Providers_Status", "\"Status\" IN ('Pending', 'Published', 'Suspended', 'Rejected')");
 
@@ -281,6 +262,49 @@ namespace Azul.Api.Migrations
                     b.ToTable("ProviderConsents", t =>
                         {
                             t.HasCheckConstraint("CK_ProviderConsents_RevokedAt", "\"RevokedAt\" IS NULL OR \"RevokedAt\" >= \"AcceptedAt\"");
+                        });
+                });
+
+            modelBuilder.Entity("Azul.Api.Entities.ProviderContact", b =>
+                {
+                    b.Property<int>("ProviderId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CallPhone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("ExtraUrl")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("InstagramUsername")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("ProviderId");
+
+                    b.HasIndex("CallPhone");
+
+                    b.HasIndex("InstagramUsername")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ProviderContacts_InstagramUsername");
+
+                    b.HasIndex("PhoneNumber");
+
+                    b.ToTable("ProviderContacts", t =>
+                        {
+                            t.HasCheckConstraint("CK_ProviderContacts_AtLeastOnePhone", "\"PhoneNumber\" IS NOT NULL OR \"CallPhone\" IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_ProviderContacts_CallPhone", "\"CallPhone\" IS NULL OR (\"CallPhone\" ~ '^\\+[1-9]\\d{7,14}$' AND (\"CallPhone\" !~ '^\\+54' OR \"CallPhone\" ~ '^\\+54[1-8]\\d{9}$'))");
+
+                            t.HasCheckConstraint("CK_ProviderContacts_InstagramUsername_Lower", "\"InstagramUsername\" IS NULL OR \"InstagramUsername\" = lower(\"InstagramUsername\")");
+
+                            t.HasCheckConstraint("CK_ProviderContacts_PhoneNumber", "\"PhoneNumber\" IS NULL OR (\"PhoneNumber\" ~ '^\\+[1-9]\\d{7,14}$' AND (\"PhoneNumber\" !~ '^\\+54' OR \"PhoneNumber\" ~ '^\\+549\\d{10}$'))");
                         });
                 });
 
@@ -482,6 +506,17 @@ namespace Azul.Api.Migrations
                     b.Navigation("Provider");
                 });
 
+            modelBuilder.Entity("Azul.Api.Entities.ProviderContact", b =>
+                {
+                    b.HasOne("Azul.Api.Entities.Provider", "Provider")
+                        .WithOne("Contact")
+                        .HasForeignKey("Azul.Api.Entities.ProviderContact", "ProviderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Provider");
+                });
+
             modelBuilder.Entity("Azul.Api.Entities.ProviderOffering", b =>
                 {
                     b.HasOne("Azul.Api.Entities.Offering", "Offering")
@@ -565,6 +600,9 @@ namespace Azul.Api.Migrations
             modelBuilder.Entity("Azul.Api.Entities.Provider", b =>
                 {
                     b.Navigation("Consents");
+
+                    b.Navigation("Contact")
+                        .IsRequired();
 
                     b.Navigation("Offerings");
                 });

@@ -18,12 +18,6 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             .HasDefaultValue(ProviderStatus.Pending)
             .HasSentinel(ProviderStatus.Pending);
 
-        p.HasIndex(x => x.InstagramUsername)
-            .IsUnique()
-            .HasDatabaseName("IX_Providers_InstagramUsername");
-
-        p.HasIndex(x => x.PhoneNumber);
-
         // 1 a 1 con el usuario. Nulo = ficha precargada que nadie reclamó todavía.
         // Restrict: la base no deja borrar un usuario con ficha; el servicio decide qué hacer con ella.
         p.HasOne(x => x.User)
@@ -83,21 +77,9 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                 """);
 
             t.HasCheckConstraint(
-                "CK_Providers_PhoneNumber",
-                """
-                "PhoneNumber" ~ '^\+549\d{10}$'
-                """);
-
-            t.HasCheckConstraint(
                 "CK_Providers_FirstPublishedAt",
                 """
                 "Status" <> 'Published' OR "FirstPublishedAt" IS NOT NULL
-                """);
-
-            t.HasCheckConstraint(
-                "CK_Providers_InstagramUsername_Lower",
-                """
-                "InstagramUsername" IS NULL OR "InstagramUsername" = lower("InstagramUsername")
                 """);
         });
     }
