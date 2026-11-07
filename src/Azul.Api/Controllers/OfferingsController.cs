@@ -2,6 +2,7 @@
 using Azul.Api.DTOs.Offerings;
 using Azul.Api.Services.Offerings;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Azul.Api.Controllers;
 
@@ -10,6 +11,7 @@ namespace Azul.Api.Controllers;
 public class OfferingsController(IOfferingService offeringService) : ControllerBase
 {
     [HttpGet]
+    [EnableRateLimiting("search")]
     [ProducesResponseType<PagedResult<OfferingListItemDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
