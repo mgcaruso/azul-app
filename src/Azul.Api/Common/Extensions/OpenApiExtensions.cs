@@ -17,35 +17,6 @@ public static class OpenApiExtensions
 
         services.AddOpenApi(options =>
         {
-            // Declara la clave de admin (header X-Admin-Key) para que Swagger muestre el botón Authorize.
-            options.AddDocumentTransformer((document, _, _) =>
-            {
-                document.Components ??= new OpenApiComponents();
-                document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
-                document.Components.SecuritySchemes["AdminKey"] = new OpenApiSecurityScheme
-                {
-                    Type = SecuritySchemeType.ApiKey,
-                    Name = "X-Admin-Key",
-                    In = ParameterLocation.Header,
-                    Description = "Clave de admin (la misma de user-secrets: Admin:ApiKey).",
-                };
-                return Task.CompletedTask;
-            });
-
-            // Solo las rutas /api/admin piden la clave.
-            options.AddOperationTransformer((operation, context, _) =>
-            {
-                if (context.Description.RelativePath?.StartsWith("api/admin") == true)
-                {
-                    operation.Security ??= [];
-                    operation.Security.Add(new OpenApiSecurityRequirement
-                    {
-                        [new OpenApiSecuritySchemeReference("AdminKey", context.Document)] = []
-                    });
-                }
-                return Task.CompletedTask;
-            });
-
             options.AddSchemaTransformer((schema, context, _) =>
             {
                 if (schema.Properties is null)

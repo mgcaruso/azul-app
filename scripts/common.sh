@@ -24,7 +24,7 @@ require_clean_main() {
 list_migrations() {
   local conn="$1" out attempt
   # EF starts Program.cs up to Build(): these settings are required but unused here.
-  export Admin__ApiKey="unused" Photos__BaseUrl="http://localhost/photos/" Google__ClientId="unused"
+  export Admin__BootstrapEmails__0="unused@example.com" Photos__BaseUrl="http://localhost/photos/" Google__ClientId="unused"
   dotnet build src/Azul.Api/Azul.Api.csproj -c Release --nologo >&2 || return 1
   for attempt in 1 2 3; do
     if out=$(cd src/Azul.Api && dotnet ef migrations list --configuration Release --no-build --connection "$conn"); then

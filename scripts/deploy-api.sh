@@ -20,7 +20,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 SERVICE="azul-api"
 RUNTIME_SA="azul-api-runtime@azul-encuentra.iam.gserviceaccount.com"
 IMAGE_REPO="southamerica-east1-docker.pkg.dev/azul-encuentra/azul/azul-api"
-SECRETS="Admin__ApiKey=azul-admin-api-key:latest,ProviderConsent__PhoneHashKey=azul-phone-hash-key:latest,ConnectionStrings__Default=azul-db-connection:latest,Proxy__Secret=azul-proxy-secret:latest"
+SECRETS="ProviderConsent__PhoneHashKey=azul-phone-hash-key:latest,ConnectionStrings__Default=azul-db-connection:latest,Proxy__Secret=azul-proxy-secret:latest"
 
 version="${1:-}"
 rollback=false

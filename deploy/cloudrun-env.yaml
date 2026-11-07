@@ -2,7 +2,7 @@
 # Lo usa .github/workflows/deploy-api.yml con --env-vars-file.
 #
 # Los secretos NO van acá: están en Google Secret Manager y el workflow los
-# conecta con --set-secrets (Admin__ApiKey, ProviderConsent__PhoneHashKey,
+# conecta con --set-secrets (ProviderConsent__PhoneHashKey,
 # ConnectionStrings__Default).
 #
 # Ojo: en cada deploy se reemplazan TODAS las variables del servicio por las de
@@ -11,6 +11,7 @@
 
 ASPNETCORE_ENVIRONMENT: "Production"
 Photos__BaseUrl: "https://azul-api.example/photos/"
+Admin__BootstrapEmails__0: "mguadalupecaruso@gmail.com"
 Google__ClientId: "648987077606-q129ktjsbdfgr5kquhmaktml9nifv80p.apps.googleusercontent.com"
 
 # El navegador le habla a la API a través del Worker (mismo dominio), así que CORS

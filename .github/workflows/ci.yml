@@ -73,6 +73,7 @@ jobs:
         working-directory: src/Azul.Api
         env:
           Admin__ApiKey: no-se-usa
+          Admin__BootstrapEmails__0: ci@example.com
           Photos__BaseUrl: http://localhost/photos/
           Google__ClientId: no-se-usa
         run: dotnet ef migrations has-pending-model-changes --configuration Release --no-build

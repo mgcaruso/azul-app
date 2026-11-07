@@ -79,7 +79,7 @@ Variables que hoy tiene que tener `env.yaml`:
 
 ```yaml
 ASPNETCORE_ENVIRONMENT: "Production"
-Admin__ApiKey: "<clave del panel admin>"
+Admin__BootstrapEmails__0: "<email de Google del primer administrador>"
 ProviderConsent__PhoneHashKey: "<clave del hash de celulares; no cambiarla nunca>"
 ConnectionStrings__Default: "<cadena de Neon>"
 Photos__BaseUrl: "https://azul-api.example/photos/"

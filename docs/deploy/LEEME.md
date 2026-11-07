@@ -32,7 +32,7 @@ Generá dos valores largos y guardalos en tu gestor de contraseñas (no en git, 
 [guid]::NewGuid().ToString("N") + [guid]::NewGuid().ToString("N")
 ```
 
-- **`Admin__ApiKey`**: la clave del panel admin (valor 1).
+- **`Admin__BootstrapEmails__0`**: el email de Google del primer administrador (el resto se suma desde el panel).
 - **`ProviderConsent__PhoneHashKey`**: se usa para guardar el hash de los celulares (valor 2). **No la cambies después**: los hashes guardados dejarían de coincidir.
 
 ## 2. Base de datos (Neon)
@@ -78,7 +78,7 @@ En la raíz de `azul-app` creá `env.yaml`. **Está ignorado por git y por Docke
 
 ```yaml
 ASPNETCORE_ENVIRONMENT: "Production"
-Admin__ApiKey: "<valor 1>"
+Admin__BootstrapEmails__0: "<email de Google del primer administrador>"
 ProviderConsent__PhoneHashKey: "<valor 2>"
 ConnectionStrings__Default: "<cadena de Neon>"
 Photos__BaseUrl: "https://azul-api.example/photos/"

@@ -1,6 +1,7 @@
 ﻿using Azul.Api.Common.Security;
 using Azul.Api.Data;
 using Azul.Api.Services;
+using Azul.Api.Services.Administrators;
 using Azul.Api.Services.Auth;
 using Azul.Api.Services.Catalog;
 using Azul.Api.Services.Categories;
@@ -34,9 +35,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProviderWriteService, ProviderWriteService>();
         services.AddScoped<ICatalogService, CatalogService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAdministratorService, AdministratorService>();
         services.AddSingleton<IPhoneHasher, PhoneHasher>();
         services.AddSingleton<IGoogleTokenValidator, GoogleTokenValidator>();
-        services.AddSingleton<AdminKeyFilter>();
 
         services.AddValidatorsFromAssemblyContaining<Program>();
 

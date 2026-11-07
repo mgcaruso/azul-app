@@ -19,36 +19,15 @@ public static class RateLimitingExtensions
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.OnRejected = WriteRateLimitedResponse;
 
-            // Límites que corren en todos los pedidos, además de las políticas de cada endpoint. Si falla uno, se rechaza.
-            options.GlobalLimiter = PartitionedRateLimiter.CreateChained(
-                // Tope total del login admin sin importar la IP: frena un ataque repartido en muchas IPs.
-                // Corre además del límite por IP de la política "admin-login".
-                PartitionedRateLimiter.Create<HttpContext, string>(context =>
-                {
-                    var esLoginAdmin = context.GetEndpoint()?.Metadata
-                        .GetMetadata<EnableRateLimitingAttribute>()?.PolicyName == "admin-login";
-
-                    return esLoginAdmin
-                        ? RateLimitPartition.GetFixedWindowLimiter("admin-login-global",
-                            _ => new FixedWindowRateLimiterOptions
-                                { PermitLimit = rateLimit.AdminLoginGlobalPerMinute, Window = TimeSpan.FromMinutes(1) })
-                        : RateLimitPartition.GetNoLimiter("sin-limite");
-                }),
-                // Freno general por IP para todo /api: alguien que hace cientos de pedidos por minuto no es una persona.
-                // Solo /api: el front y las fotos no pasan por acá.
-                PartitionedRateLimiter.Create<HttpContext, string>(context =>
-                    context.Request.Path.StartsWithSegments("/api")
-                        ? RateLimitPartition.GetFixedWindowLimiter(
-                            $"public-ip:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}",
-                            _ => new FixedWindowRateLimiterOptions
-                                { PermitLimit = rateLimit.PublicPerMinute, Window = TimeSpan.FromMinutes(1) })
-                        : RateLimitPartition.GetNoLimiter("sin-limite")));
-
-            options.AddPolicy("admin-login", context =>
-                RateLimitPartition.GetFixedWindowLimiter(
-                    context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    _ => new FixedWindowRateLimiterOptions
-                        { PermitLimit = rateLimit.AdminLoginPerMinute, Window = TimeSpan.FromMinutes(1) }));
+            // Freno general por IP para todo /api: alguien que hace cientos de pedidos por minuto no es una persona.
+            // Corre en todos los pedidos, además de las políticas de cada endpoint. Solo /api: el front y las fotos no pasan por acá.
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                context.Request.Path.StartsWithSegments("/api")
+                    ? RateLimitPartition.GetFixedWindowLimiter(
+                        $"public-ip:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}",
+                        _ => new FixedWindowRateLimiterOptions
+                            { PermitLimit = rateLimit.PublicPerMinute, Window = TimeSpan.FromMinutes(1) })
+                    : RateLimitPartition.GetNoLimiter("sin-limite"));
 
             options.AddPolicy("provider-signup", context =>
                 RateLimitPartition.GetFixedWindowLimiter(

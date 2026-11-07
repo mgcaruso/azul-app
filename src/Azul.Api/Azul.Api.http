@@ -19,7 +19,7 @@ Accept: application/json
 
 ### Crear una categoría -> 201 con header Location
 POST {{baseUrl}}/api/admin/categories
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -28,7 +28,7 @@ Content-Type: application/json
 
 ### Mismo nombre en otro caso y con espacios -> 409
 POST {{baseUrl}}/api/admin/categories
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -37,7 +37,7 @@ Content-Type: application/json
 
 ### Nombre vacío -> 400 (validación del DTO)
 POST {{baseUrl}}/api/admin/categories
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -46,7 +46,7 @@ Content-Type: application/json
 
 ### Editar una categoría -> 204
 PUT {{baseUrl}}/api/admin/categories/{{categoryId}}
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -55,7 +55,7 @@ Content-Type: application/json
 
 ### Editar con el nombre de otra categoría -> 409
 PUT {{baseUrl}}/api/admin/categories/{{categoryId}}
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -64,15 +64,15 @@ Content-Type: application/json
 
 ### Borrar una categoría -> 204 (cambiá el id por una que puedas borrar)
 DELETE {{baseUrl}}/api/admin/categories/{{categoryId}}
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 
 ### Borrar un id que no existe -> 404
 DELETE {{baseUrl}}/api/admin/categories/99999
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 
 ### Borrar una categoría que tiene servicios -> 409 (category_has_offerings)
 DELETE {{baseUrl}}/api/admin/categories/{{categoryId}}
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 
 ### ===== Servicios (Offering) =====
 
@@ -90,7 +90,7 @@ Accept: application/json
 
 ### Crear un servicio -> 201 con header Location
 POST {{baseUrl}}/api/admin/offerings
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -100,7 +100,7 @@ Content-Type: application/json
 
 ### Mismo nombre en la misma categoría (otro caso y con espacios) -> 409 (duplicate_value, field name)
 POST {{baseUrl}}/api/admin/offerings
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -110,7 +110,7 @@ Content-Type: application/json
 
 ### Mismo nombre en OTRA categoría -> 201 (es único por categoría)
 POST {{baseUrl}}/api/admin/offerings
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -120,7 +120,7 @@ Content-Type: application/json
 
 ### Categoría que no existe -> 400 con errors.categoryId
 POST {{baseUrl}}/api/admin/offerings
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -130,7 +130,7 @@ Content-Type: application/json
 
 ### Sin categoryId -> 400 (validación del DTO)
 POST {{baseUrl}}/api/admin/offerings
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -139,7 +139,7 @@ Content-Type: application/json
 
 ### Editar un servicio -> 204
 PUT {{baseUrl}}/api/admin/offerings/{{offeringId}}
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -149,7 +149,7 @@ Content-Type: application/json
 
 ### Editar con el nombre de otro servicio de la misma categoría -> 409 (cambiá el nombre por uno que exista)
 PUT {{baseUrl}}/api/admin/offerings/{{offeringId}}
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -159,7 +159,7 @@ Content-Type: application/json
 
 ### Mover a una categoría que no existe -> 400 con errors.categoryId
 PUT {{baseUrl}}/api/admin/offerings/{{offeringId}}
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -169,7 +169,7 @@ Content-Type: application/json
 
 ### Editar un servicio que no existe -> 404
 PUT {{baseUrl}}/api/admin/offerings/99999
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -179,11 +179,11 @@ Content-Type: application/json
 
 ### Borrar un servicio -> 204 (cambiá el id por uno que puedas borrar)
 DELETE {{baseUrl}}/api/admin/offerings/{{offeringId}}
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 
 ### Borrar un servicio que no existe -> 404 (not_found, resource offering)
 DELETE {{baseUrl}}/api/admin/offerings/99999
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 
 ### Servicios de una categoría que tiene servicios -> 200 con la lista ordenada por nombre
 GET {{baseUrl}}/api/categories/{{categoryId}}/offerings
@@ -314,12 +314,12 @@ Accept: application/json
 ### Borrar un servicio que algún proveedor ofrece -> hoy 500 (la FK Restrict lo frena en la base).
 ### Cuando hagas el TODO de OfferingService.DeleteAsync tiene que ser 409.
 DELETE {{baseUrl}}/api/admin/offerings/{{offeringId}}
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 
 
 ### Editar un proveedor (nombre, tipo y servicios) -> 204
 PUT {{baseUrl}}/api/admin/providers/{{providerId}}
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -330,7 +330,7 @@ Content-Type: application/json
 
 ### Editar con un servicio que no existe -> 400 con errors.offeringIds
 PUT {{baseUrl}}/api/admin/providers/{{providerId}}
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -341,7 +341,7 @@ Content-Type: application/json
 
 ### Editar un proveedor que no existe -> 404 (not_found, resource provider)
 PUT {{baseUrl}}/api/admin/providers/99999
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -352,11 +352,11 @@ Content-Type: application/json
 
 ### Borrar un proveedor -> 204 (cambiá el id por uno que puedas borrar)
 DELETE {{baseUrl}}/api/admin/providers/{{providerId}}
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 
 ### Borrar un proveedor que no existe -> 404 (not_found, resource provider)
 DELETE {{baseUrl}}/api/admin/providers/99999
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 
 ### ===== Protección de admin =====
 
@@ -368,18 +368,9 @@ Content-Type: application/json
   "name": "Prueba sin clave"
 }
 
-### Clave incorrecta -> 401
-POST {{baseUrl}}/api/admin/categories
-X-Admin-Key: cualquiercosa
-Content-Type: application/json
-
-{
-  "name": "Prueba clave incorrecta"
-}
-
 ### Clave correcta -> 201 (si ya existe, 409: igual prueba que pasó el filtro)
 POST {{baseUrl}}/api/admin/categories
-X-Admin-Key: {{adminKey}}
+Cookie: azul.session={{sessionCookie}}
 Content-Type: application/json
 
 {
@@ -391,11 +382,3 @@ GET {{baseUrl}}/api/categories
 Accept: application/json
 
 
-### admin/session with key
-GET {{baseUrl}}/api/admin/session
-X-Admin-Key: {{adminKey}}
-Content-Type: application/json
-
-### admin/session
-GET {{baseUrl}}/api/admin/session
-Content-Type: application/json

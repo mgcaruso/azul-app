@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Azul.Api.Common.Exceptions;
+using Azul.Api.Common.Security;
 using Azul.Api.Data;
 using Azul.Api.DTOs.Auth;
 using Azul.Api.Entities;
@@ -12,6 +13,8 @@ public class AuthService(
     IGoogleTokenValidator googleTokenValidator,
     UserManager<AppUser> userManager,
     SignInManager<AppUser> signInManager,
+    RoleManager<IdentityRole<Guid>> roleManager,
+    IConfiguration configuration,
     AppDbContext dbContext) : IAuthService
 {
     public async Task<MeDto> SignInWithGoogleAsync(string idToken)
@@ -34,9 +37,9 @@ public class AuthService(
                 CreatedAt = DateTime.UtcNow,
                 EmailConfirmed = true
             };
-            EnsureSucceeded(await userManager.CreateAsync(appUser));
-            EnsureSucceeded(await userManager.AddLoginAsync(
-                appUser, new UserLoginInfo("Google", googleUser.Subject, "Google")));
+            (await userManager.CreateAsync(appUser)).EnsureSucceeded();
+            (await userManager.AddLoginAsync(
+                appUser, new UserLoginInfo("Google", googleUser.Subject, "Google"))).EnsureSucceeded();
         }
         else
         {
@@ -48,30 +51,44 @@ public class AuthService(
                 appUser.UserName = googleUser.Email;
                 appUser.DisplayName = googleUser.Name;
                 appUser.PictureUrl = googleUser.PictureUrl;
-                EnsureSucceeded(await userManager.UpdateAsync(appUser));
+                (await userManager.UpdateAsync(appUser)).EnsureSucceeded();
             }
         }
 
+        // Before SignInAsync: the session cookie is built with the roles the user has at this moment.
+        await EnsureBootstrapAdminAsync(appUser);
         await signInManager.SignInAsync(appUser, isPersistent: true);
         return await ToMeDtoAsync(appUser);
+    }
+
+    // The first admin comes from configuration (Admin:BootstrapEmails): if the user who just signed in
+    // is listed and does not have the Admin role yet, it is created (once) and assigned.
+    // Every other admin is managed from the admin panel.
+    private async Task EnsureBootstrapAdminAsync(AppUser appUser)
+    {
+        var bootstrapEmails = configuration.GetSection("Admin:BootstrapEmails").Get<string[]>() ?? [];
+        var isBootstrapAdmin = bootstrapEmails.Contains(appUser.Email, StringComparer.OrdinalIgnoreCase);
+        if (!isBootstrapAdmin || await userManager.IsInRoleAsync(appUser, AppRoles.Admin))
+        {
+            return;
+        }
+
+        if (!await roleManager.RoleExistsAsync(AppRoles.Admin))
+        {
+            (await roleManager.CreateAsync(new IdentityRole<Guid>(AppRoles.Admin))).EnsureSucceeded();
+        }
+
+        (await userManager.AddToRoleAsync(appUser, AppRoles.Admin)).EnsureSucceeded();
     }
 
     // Un solo lugar donde se arma lo que el front sabe de la sesión.
     private async Task<MeDto> ToMeDtoAsync(AppUser appUser)
     {
+        
         var isProvider = await dbContext.Providers.AnyAsync(p => p.UserId == appUser.Id);
-        return new MeDto(appUser.Id, appUser.Email!, appUser.DisplayName, appUser.PictureUrl, isProvider);
+        var isAdmin = await userManager.IsInRoleAsync(appUser, AppRoles.Admin);
+        return new MeDto(appUser.Id, appUser.Email!, appUser.DisplayName, appUser.PictureUrl, isProvider, isAdmin);
     }
-
-    private static void EnsureSucceeded(IdentityResult result)
-    {
-        if (!result.Succeeded)
-        {
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            throw new InvalidOperationException($"Identity rechazó la operación: {errors}");
-        }
-    }
-
 
     public async Task<MeDto> GetMeAsync(ClaimsPrincipal principal)
     {
@@ -95,7 +112,8 @@ public class AuthService(
             throw UnauthorizedException.NotSignedIn();
         }
 
-        EnsureSucceeded(await userManager.UpdateSecurityStampAsync(appUser));
+        (await userManager.UpdateSecurityStampAsync(appUser)).EnsureSucceeded();
         await signInManager.SignOutAsync();
     }
+
 }
