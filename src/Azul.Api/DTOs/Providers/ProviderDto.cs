@@ -16,5 +16,6 @@ public class ProviderDto
     public string? InstagramUsername { get; set; }
     public string? Address { get; set; }
     public string? Hours { get; set; }
+    public MainCategoryDto? MainCategory { get; set; }
     public List<OfferingSummaryDto> Offerings { get; set; } = [];
 }

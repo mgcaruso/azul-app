@@ -17,6 +17,7 @@ builder.Services
 var app = builder.Build();
 
 await app.SeedCatalogAsync();
+await app.SeedDevelopmentDataAsync();
 
 app.UseAppPipeline();
 app.MapControllers();

@@ -104,6 +104,38 @@ public class ProviderWriteService(
         logger.LogInformation("Ficha {ProviderId} borrada", id);
     }
 
+    // PUT /api/me/provider: the owner edits their ficha. Published stays published and Pending stays Pending.
+    // Suspended and Rejected are read-only for the owner.
+    public async Task UpdateMineAsync(Guid userId, ProviderSaveDto providerSaveDto)
+    {
+        var mine = await GetMineIdAndStatusAsync(userId);
+
+        if (mine.Status is not (ProviderStatus.Pending or ProviderStatus.Published))
+        {
+            throw new ConflictException(InvalidStatusTransitionCode, GetInvalidStatusMessage("editar", mine.Status));
+        }
+
+        await UpdateAsync(mine.Id, providerSaveDto);
+    }
+
+    // DELETE /api/me/provider: the owner removes their ficha. Allowed in any status (right to erasure, ley 25.326).
+    public async Task DeleteMineAsync(Guid userId)
+    {
+        var mine = await GetMineIdAndStatusAsync(userId);
+        await DeleteAsync(mine.Id);
+    }
+
+    private async Task<(int Id, ProviderStatus Status)> GetMineIdAndStatusAsync(Guid userId)
+    {
+        var mine = await dbContext.Providers
+            .Where(p => p.UserId == userId)
+            .Select(p => new { p.Id, p.Status })
+            .FirstOrDefaultAsync()
+            ?? throw new NotFoundException("provider", userId);
+
+        return (mine.Id, mine.Status);
+    }
+
     private const string InvalidStatusTransitionCode = "invalid_status_transition";
 
     // POST /api/admin/providers/{id}/publish: se puede publicar desde Pending o Suspended.

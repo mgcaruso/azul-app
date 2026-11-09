@@ -83,4 +83,18 @@ public static class WebApplicationExtensions
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await CatalogSeeder.SeedAsync(dbContext);
     }
+
+    // Loads a few hand-made providers to try the API locally. It needs both the Development environment and
+    // DevSeed:Enabled=true (only set in appsettings.Development.json), and only runs on a database without providers.
+    public static async Task SeedDevelopmentDataAsync(this WebApplication app)
+    {
+        if (!app.Environment.IsDevelopment() || !app.Configuration.GetValue<bool>("DevSeed:Enabled"))
+        {
+            return;
+        }
+
+        using var scope = app.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await DevProviderSeeder.SeedAsync(dbContext);
+    }
 }
