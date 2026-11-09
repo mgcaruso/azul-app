@@ -46,6 +46,13 @@ public static class ProviderProjections
             InstagramUsername = p.Contact.InstagramUsername,
             Address = p.Address,
             Hours = p.Hours,
+            // One correlated subquery (same SQL round trip): the category with most of this provider's offerings.
+            MainCategory = p.Offerings
+                .Select(po => po.Offering.Category)
+                .OrderByDescending(c => p.Offerings.Count(x => x.Offering.CategoryId == c.Id))
+                .ThenBy(c => c.Name)
+                .Select(c => new MainCategoryDto { Id = c.Id, Name = c.Name })
+                .FirstOrDefault(),
             Offerings = p.Offerings
                 .OrderBy(po => po.Offering.Name)
                 .Select(po => new OfferingSummaryDto { Id = po.Offering.Id, Name = po.Offering.Name })
