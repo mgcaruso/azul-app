@@ -14,6 +14,8 @@ public class ProviderSaveDto
     public string? DisplayName { get; set; }
 
     public string? Description { get; set; }
+    // TODO: an owner can send any PhotoKey and the profile would show that path. Before opening to the public, stop accepting it
+    // from the owner's PUT/POST and let only the photo upload flow write it.
     public string? PhotoKey { get; set; }
     // Hace falta al menos uno de los dos teléfonos. Formato internacional: +54 9 2281 40-1234 (WhatsApp), +54 2281 45-6789 (fijo).
     public string? PhoneNumber { get; set; }

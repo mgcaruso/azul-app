@@ -11,7 +11,10 @@ namespace Azul.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/me")]
-public class MeController(IAuthService authService, IProviderReadService providerReadService) : ControllerBase
+public class MeController(
+    IAuthService authService,
+    IProviderReadService providerReadService,
+    IProviderWriteService providerWriteService) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType<MeDto>(StatusCodes.Status200OK)]
@@ -29,5 +32,29 @@ public class MeController(IAuthService authService, IProviderReadService provide
     public async Task<ActionResult<MyProviderDto>> GetProvider()
     {
         return Ok(await providerReadService.GetMineAsync(User.GetUserId()));
+    }
+
+    // Edit the signed-in user's own ficha. There is no id in the route, so nobody can edit someone else's.
+    [HttpPut("provider")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult> UpdateProvider([FromBody] ProviderSaveDto dto)
+    {
+        await providerWriteService.UpdateMineAsync(User.GetUserId(), dto);
+        return NoContent();
+    }
+
+    // Delete the signed-in user's own ficha.
+    [HttpDelete("provider")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DeleteProvider()
+    {
+        await providerWriteService.DeleteMineAsync(User.GetUserId());
+        return NoContent();
     }
 }
